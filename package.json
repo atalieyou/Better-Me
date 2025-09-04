@@ -1,7 +1,7 @@
 {
-  "name": "beauty-ai-app-backend",
+  "name": "better-me-app",
   "version": "1.0.0",
-  "description": "AI 외모 분석 및 성형외과 상담 백엔드 서버",
+  "description": "Better Me - AI 외모 분석 및 메이크업 팁 서비스",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -30,6 +30,6 @@
     "analysis",
     "gpt-4o"
   ],
-  "author": "Beauty AI App",
+  "author": "Better Me App",
   "license": "MIT"
 }

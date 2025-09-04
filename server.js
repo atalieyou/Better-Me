@@ -622,7 +622,7 @@ app.use('*', (req, res) => {
 
 // 서버 시작
 server.listen(PORT, () => {
-    console.log(`🚀 Beauty AI App Backend Server가 포트 ${PORT}에서 실행 중입니다.`);
+    console.log(`🚀 Better Me App Backend Server가 포트 ${PORT}에서 실행 중입니다.`);
     console.log(`📁 업로드 디렉토리: ${uploadDir}`);
     console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5500'}`);
     console.log(`🔌 WebSocket 서버가 활성화되었습니다.`);

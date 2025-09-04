@@ -2373,7 +2373,7 @@ async function saveAnalysisResult() {
             </div>
             
             <div style="text-align: center; margin-top: 30px; color: #666; font-size: 0.9em;">
-                Better U - AI 외모 분석 결과
+                Better Me - AI 외모 분석 결과
             </div>
         `;
         
@@ -2456,7 +2456,7 @@ async function saveMakeupTips() {
             </div>
             
             <div style="text-align: center; margin-top: 30px; color: #666; font-size: 0.9em;">
-                Better U - AI 메이크업 팁
+                Better Me - AI 메이크업 팁
             </div>
         `;
         
