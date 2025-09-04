@@ -151,15 +151,15 @@ body {
     margin-bottom: 30px;
 }
 
-.step-panel {
+#step-1, #step-2, #step-3, #step-4, #step-5, #step-6 {
     display: none;
 }
 
-.step-panel.active {
+#step-1.active, #step-2.active, #step-3.active, #step-4.active, #step-5.active, #step-6.active {
     display: block;
 }
 
-.step-panel h2 {
+#step-1 h2, #step-2 h2, #step-3 h2, #step-4 h2, #step-5 h2, #step-6 h2 {
     text-align: center;
     margin-bottom: 30px;
     color: #333;
@@ -445,10 +445,7 @@ body {
 /* .analysis-item { ... } */
 /* .score { ... } */
 
-/* 피드백 컨테이너 - 박스 제거 */
-.feedback-container {
-    margin-bottom: 30px;
-}
+/* 피드백 컨테이너 - 완전 제거 */
 
 /* 전체 분석 결과 스타일 - 박스 제거 */
 .complete-analysis {

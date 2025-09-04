@@ -298,93 +298,78 @@
                 </div>
 
                         <!-- 5단계: 피드백 제공 -->
-        <div class="step-panel" id="step-5">
-                    <h2>AI 브랜딩 실장이 바라본 당신의 얼굴</h2>
-                    
-                    <!-- 업로드된 이미지들 표시 -->
-                    <div class="uploaded-image-section">
-                        <h3><i class="fas fa-image"></i> 분석된 이미지들</h3>
-                        <div class="analysis-images-grid">
-                            <div class="analysis-image-item">
-                                <h4><i class="fas fa-user"></i> 정면 사진</h4>
-                                <img id="step5-uploaded-image-front" src="" alt="정면 사진" class="analysis-image">
-                            </div>
-                            <div class="analysis-image-item">
-                                <h4><i class="fas fa-user-friends"></i> 45도 측면 사진</h4>
-                                <img id="step5-uploaded-image-45" src="" alt="45도 측면 사진" class="analysis-image">
-                            </div>
-                            <div class="analysis-image-item">
-                                <h4><i class="fas fa-user-secret"></i> 90도 측면 사진</h4>
-                                <img id="step5-uploaded-image-90" src="" alt="90도 측면 사진" class="analysis-image">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="feedback-container">
-                        <div class="feedback-details">
-                            <div class="complete-analysis">
-                                <div class="point-display" id="point-display">
-                                    <!-- 포인트가 여기에 큰 폰트로 표시됩니다 -->
-                                </div>
-                                <h4><i class="fas fa-clipboard-list"></i> 전체 분석 결과</h4>
-                                <div class="analysis-content" id="complete-analysis-content">
-                                    <p>분석 결과를 기다리는 중...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="step-buttons">
-                        <button class="btn btn-secondary" onclick="saveStep5AsImage()" id="save-step5">
-                            <i class="fas fa-image"></i> 이미지로 저장하기
-                        </button>
-                        <button class="btn btn-primary" onclick="nextStep()" id="next-step-5">다음 단계</button>
-                    </div>
+        <div id="step-5">
+            <h2>AI 브랜딩 실장이 바라본 당신의 얼굴</h2>
+            
+            <!-- 업로드된 이미지들 표시 -->
+            <h3><i class="fas fa-image"></i> 분석된 이미지들</h3>
+            <div class="analysis-images-grid">
+                <div class="analysis-image-item">
+                    <h4><i class="fas fa-user"></i> 정면 사진</h4>
+                    <img id="step5-uploaded-image-front" src="" alt="정면 사진" class="analysis-image">
                 </div>
+                <div class="analysis-image-item">
+                    <h4><i class="fas fa-user-friends"></i> 45도 측면 사진</h4>
+                    <img id="step5-uploaded-image-45" src="" alt="45도 측면 사진" class="analysis-image">
+                </div>
+                <div class="analysis-image-item">
+                    <h4><i class="fas fa-user-secret"></i> 90도 측면 사진</h4>
+                    <img id="step5-uploaded-image-90" src="" alt="90도 측면 사진" class="analysis-image">
+                </div>
+            </div>
+            
+            <div class="point-display" id="point-display">
+                <!-- 포인트가 여기에 큰 폰트로 표시됩니다 -->
+            </div>
+            <h4><i class="fas fa-clipboard-list"></i> 전체 분석 결과</h4>
+            <div class="analysis-content" id="complete-analysis-content">
+                <p>분석 결과를 기다리는 중...</p>
+            </div>
+            
+            <div class="step-buttons">
+                <button class="btn btn-secondary" onclick="saveStep5AsImage()" id="save-step5">
+                    <i class="fas fa-image"></i> 이미지로 저장하기
+                </button>
+                <button class="btn btn-primary" onclick="nextStep()" id="next-step-5">다음 단계</button>
+            </div>
+        </div>
 
-                        <!-- 6단계: 메이크업 및 시술 팁 -->
-        <div class="step-panel" id="step-6">
-                    <h2>AI 메이크업 실장의 맞춤형 조언</h2>
-                    
-                    <!-- 업로드된 이미지들 표시 -->
-                    <div class="uploaded-image-section">
-                        <h3><i class="fas fa-image"></i> 분석된 이미지들</h3>
-                        <div class="analysis-images-grid">
-                            <div class="analysis-image-item">
-                                <h4><i class="fas fa-user"></i> 정면 사진</h4>
-                                <img id="step6-uploaded-image-front" src="" alt="정면 사진" class="analysis-image">
-                            </div>
-                            <div class="analysis-image-item">
-                                <h4><i class="fas fa-user-friends"></i> 45도 측면 사진</h4>
-                                <img id="step6-uploaded-image-45" src="" alt="45도 측면 사진" class="analysis-image">
-                            </div>
-                            <div class="analysis-image-item">
-                                <h4><i class="fas fa-user-secret"></i> 90도 측면 사진</h4>
-                                <img id="step6-uploaded-image-90" src="" alt="90도 측면 사진" class="analysis-image">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="feedback-container">
-                        <div class="feedback-details">
-                            <div class="complete-analysis">
-                                <div class="point-display" id="makeup-point-display">
-                                    <!-- 메이크업 팁 포인트가 여기에 큰 폰트로 표시됩니다 -->
-                                </div>
-                                <h4><i class="fas fa-magic"></i> AI 메이크업 실장의 맞춤형 조언</h4>
-                                <div class="analysis-content" id="makeup-tips-content">
-                                    <p>메이크업 팁을 기다리는 중...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="step-buttons">
-                        <button class="btn btn-secondary" onclick="prevStep()">이전 단계</button>
-                        <button class="btn btn-success" onclick="saveAsImages()">
-                            <i class="fas fa-image"></i> 이미지로 저장하기
-                        </button>
-                    </div>
+        <!-- 6단계: 메이크업 및 시술 팁 -->
+        <div id="step-6">
+            <h2>AI 메이크업 실장의 맞춤형 조언</h2>
+            
+            <!-- 업로드된 이미지들 표시 -->
+            <h3><i class="fas fa-image"></i> 분석된 이미지들</h3>
+            <div class="analysis-images-grid">
+                <div class="analysis-image-item">
+                    <h4><i class="fas fa-user"></i> 정면 사진</h4>
+                    <img id="step6-uploaded-image-front" src="" alt="정면 사진" class="analysis-image">
                 </div>
+                <div class="analysis-image-item">
+                    <h4><i class="fas fa-user-friends"></i> 45도 측면 사진</h4>
+                    <img id="step6-uploaded-image-45" src="" alt="45도 측면 사진" class="analysis-image">
+                </div>
+                <div class="analysis-image-item">
+                    <h4><i class="fas fa-user-secret"></i> 90도 측면 사진</h4>
+                    <img id="step6-uploaded-image-90" src="" alt="90도 측면 사진" class="analysis-image">
+                </div>
+            </div>
+            
+            <div class="point-display" id="makeup-point-display">
+                <!-- 메이크업 팁 포인트가 여기에 큰 폰트로 표시됩니다 -->
+            </div>
+            <h4><i class="fas fa-magic"></i> AI 메이크업 실장의 맞춤형 조언</h4>
+            <div class="analysis-content" id="makeup-tips-content">
+                <p>메이크업 팁을 기다리는 중...</p>
+            </div>
+            
+            <div class="step-buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">이전 단계</button>
+                <button class="btn btn-success" onclick="saveAsImages()">
+                    <i class="fas fa-image"></i> 이미지로 저장하기
+                </button>
+            </div>
+        </div>
             </div>
         </main>
 
