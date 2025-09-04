@@ -40,11 +40,6 @@ body {
     min-height: 100vh;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
 
 /* 헤더 */
 .header {
@@ -450,66 +445,37 @@ body {
 /* .analysis-item { ... } */
 /* .score { ... } */
 
-/* 피드백 컨테이너 */
+/* 피드백 컨테이너 - 박스 제거 */
 .feedback-container {
     margin-bottom: 30px;
 }
 
-/* 전체 분석 결과 스타일 */
+/* 전체 분석 결과 스타일 - 박스 제거 */
 .complete-analysis {
     grid-column: 1 / -1;
-    background: #D45858;
-    border-radius: 15px;
-    padding: 2rem;
-    color: white;
-    box-shadow: 0 10px 30px rgba(212, 88, 88, 0.2);
     margin-bottom: 2rem;
 }
 
-/* 포인트 표시 스타일 */
+/* 포인트 표시 스타일 - 박스 제거 */
 .point-display {
     text-align: center;
     margin-bottom: 32px;
-    padding: 32px;
-    background: linear-gradient(135deg, #D45858 0%, #B91C1C 100%);
-    border-radius: 20px;
-    border: 1px solid #D45858;
-    box-shadow: 0 12px 32px rgba(212, 88, 88, 0.25);
-    position: relative;
-    overflow: hidden;
-}
-
-.point-display::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-    pointer-events: none;
 }
 
 .point-display .point-value {
     font-size: 4.5rem;
     font-weight: 900;
-    color: white;
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    color: #D45858;
     margin: 0;
     line-height: 1;
-    position: relative;
-    z-index: 1;
 }
 
 .point-display .point-label {
     font-size: 1.25rem;
-    color: white;
+    color: #666;
     margin-top: 0.75rem;
-    opacity: 1;
     font-weight: 600;
     letter-spacing: 0.01em;
-    position: relative;
-    z-index: 1;
 }
 
 .complete-analysis h4 {
@@ -829,9 +795,6 @@ body {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
-    .container {
-        padding: 15px;
-    }
     
     .header h1 {
         font-size: 2rem;
@@ -944,11 +907,7 @@ body {
 }
 
 .consent-info {
-    background: #f8f9fa;
-    padding: 25px;
-    border-radius: 15px;
     margin-bottom: 30px;
-    border-left: 4px solid #D45858;
 }
 
 .consent-info h3 {

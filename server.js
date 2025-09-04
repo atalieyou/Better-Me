@@ -91,6 +91,7 @@ wss.on('connection', (ws, req) => {
 app.use(cors({
     origin: [
         'http://localhost:3000',
+        'http://10.10.11.167:3000',
         'https://betterme-ten.vercel.app',
         'https://better-jn20tnnp3-atalies-projects.vercel.app',
         'https://better-hejanbd08-atalies-projects.vercel.app',
@@ -623,10 +624,13 @@ app.use('*', (req, res) => {
 });
 
 // 서버 시작
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Better Me App Backend Server가 포트 ${PORT}에서 실행 중입니다.`);
     console.log(`📁 업로드 디렉토리: ${uploadDir}`);
     console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5500'}`);
+    console.log(`🔗 로컬 접속: http://localhost:${PORT}`);
+    console.log(`🔗 네트워크 접속: http://10.10.11.167:${PORT}`);
+    console.log(`📱 모바일 접속: http://10.10.11.167:${PORT}`);
     console.log(`🔌 WebSocket 서버가 활성화되었습니다.`);
 });
 
