@@ -4,6 +4,13 @@ let uploadedImage = null;
 let analysisResults = null;
 let feedbackData = null;
 
+// API URL을 동적으로 가져오는 함수
+function getApiBaseUrl() {
+    return window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000' 
+        : `https://${window.location.hostname}`;
+}
+
 // WebSocket 관련 전역 변수
 let ws = null;
 let sessionId = null;
@@ -251,7 +258,7 @@ async function loadSharedResult(resultId) {
         console.log('공유 결과 로드 시작:', resultId);
         
         // 공유 결과 조회 API 호출
-        const response = await fetch(`http://localhost:3000/api/get-analysis-result/${resultId}`);
+        const response = await fetch(`${getApiBaseUrl()}/api/get-analysis-result/${resultId}`);
         
         if (!response.ok) {
             throw new Error(`API 호출 실패: ${response.status}`);
@@ -1371,7 +1378,7 @@ async function startAnalysis() {
                 formData.append('side90', uploadedImages['90'].file);
             }
 
-            const response = await fetch('http://localhost:3000/api/analyze-face', {
+            const response = await fetch(`${getApiBaseUrl()}/api/analyze-face`, {
                 method: 'POST',
                 body: formData
             });
@@ -1710,7 +1717,7 @@ async function generateImprovedImage() {
         console.log('분석 결과 확인됨, 메이크업 팁 요청 시작...');
         
         // 메이크업 팁 API 호출
-        const response = await fetch('http://localhost:3000/api/get-makeup-tips', {
+        const response = await fetch(`${getApiBaseUrl()}/api/get-makeup-tips`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1807,7 +1814,7 @@ async function generateAnalysisAndMakeupTips() {
         
         console.log('메이크업 팁 API 호출 시작...');
         // 메이크업 팁 API 호출
-        const response = await fetch('http://localhost:3000/api/get-makeup-tips', {
+        const response = await fetch(`${getApiBaseUrl()}/api/get-makeup-tips`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1879,7 +1886,7 @@ async function generateMakeupTipsOnly() {
         console.log('분석 결과 내용 (처음 200자):', analysisResults.raw_analysis.substring(0, 200));
         
         console.log('메이크업 팁 API 호출 시작...');
-        console.log('API 엔드포인트: http://localhost:3000/api/get-makeup-tips');
+        console.log('API 엔드포인트:', `${getApiBaseUrl()}/api/get-makeup-tips`);
         
         // 메이크업 팁 API 호출 (타임아웃 설정)
         console.log('=== fetch 요청 시작 ===');
@@ -1889,7 +1896,7 @@ async function generateMakeupTipsOnly() {
         const timeoutId = setTimeout(() => controller.abort(), 600000); // 10분(600초) 타임아웃
         
         try {
-            const response = await fetch('http://localhost:3000/api/get-makeup-tips', {
+            const response = await fetch(`${getApiBaseUrl()}/api/get-makeup-tips`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -2068,7 +2075,7 @@ async function generateMakeupTips() {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
                 
-                const response = await fetch('http://localhost:3000/api/get-makeup-tips', {
+                const response = await fetch(`${getApiBaseUrl()}/api/get-makeup-tips`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2595,7 +2602,7 @@ async function saveAnalysisResultToServer(isAutoSave = false) {
             imageDataForStorage['90'] = { dataUrl: uploadedImages['90'].dataUrl };
         }
         
-        const response = await fetch('http://localhost:3000/api/save-analysis-result', {
+        const response = await fetch(`${getApiBaseUrl()}/api/save-analysis-result`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -2896,7 +2903,7 @@ function setupVisibilityChangeDetection() {
 // 분석 진행 상태 확인 함수
 async function checkAnalysisProgress(sessionId) {
     try {
-        const response = await fetch(`http://localhost:3000/api/analysis-progress/${sessionId}`);
+        const response = await fetch(`${getApiBaseUrl()}/api/analysis-progress/${sessionId}`);
         
         if (!response.ok) {
             console.log('진행 상태 조회 실패');
@@ -2955,7 +2962,7 @@ async function checkAnalysisProgress(sessionId) {
 function updateShareLink(resultId) {
     const shareInput = document.getElementById('share-link');
     if (shareInput) {
-        const shareUrl = `http://localhost:3000/share/${resultId}`;
+        const shareUrl = `${getApiBaseUrl()}/share/${resultId}`;
         shareInput.value = shareUrl;
         console.log('공유 링크 업데이트:', shareUrl);
     }

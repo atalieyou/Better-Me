@@ -91,8 +91,10 @@ wss.on('connection', (ws, req) => {
 app.use(cors({
     origin: [
         'http://localhost:3000',
-        'https://beauty-ai-app.vercel.app',
-        'https://beauty-ai-app.netlify.app',
+        'https://betterme-ten.vercel.app',
+        'https://better-jn20tnnp3-atalies-projects.vercel.app',
+        'https://better-hejanbd08-atalies-projects.vercel.app',
+        'https://better-4kwtyrx9w-atalies-projects.vercel.app',
         process.env.CORS_ORIGIN
     ].filter(Boolean),
     credentials: true
