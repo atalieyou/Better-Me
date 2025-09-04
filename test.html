@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Better U - 테스트</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        button { padding: 10px 20px; margin: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Better U 앱 테스트</h1>
+    
+    <div class="test-section">
+        <h2>1. 기본 함수 테스트</h2>
+        <button onclick="testBasicFunctions()">기본 함수 테스트</button>
+        <div id="basic-test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. DOM 요소 테스트</h2>
+        <button onclick="testDOMElements()">DOM 요소 테스트</button>
+        <div id="dom-test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 이미지 업로드 테스트</h2>
+        <input type="file" id="test-image" accept="image/*">
+        <button onclick="testImageUpload()">이미지 업로드 테스트</button>
+        <div id="image-test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. 전체 플로우 테스트</h2>
+        <button onclick="testFullFlow()">전체 플로우 테스트</button>
+        <div id="flow-test-result"></div>
+    </div>
+
+    <script>
+        // 테스트 결과 표시 함수
+        function showResult(elementId, message, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${isSuccess ? 'success' : 'error'}">${message}</div>`;
+        }
+
+        // 1. 기본 함수 테스트
+        function testBasicFunctions() {
+            try {
+                // 전역 변수 확인
+                if (typeof currentStep !== 'undefined') {
+                    showResult('basic-test-result', `✅ currentStep: ${currentStep}`, true);
+                } else {
+                    showResult('basic-test-result', '❌ currentStep이 정의되지 않음', false);
+                }
+            } catch (error) {
+                showResult('basic-test-result', `❌ 오류: ${error.message}`, false);
+            }
+        }
+
+        // 2. DOM 요소 테스트
+        function testDOMElements() {
+            try {
+                const elements = [
+                    'upload-zone',
+                    'photo-input',
+                    'uploaded-image',
+                    'preview-image',
+                    'next-step-2',
+                    'next-step-3'
+                ];
+                
+                let results = [];
+                elements.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        results.push(`✅ ${id}`);
+                    } else {
+                        results.push(`❌ ${id}`);
+                    }
+                });
+                
+                showResult('dom-test-result', results.join('<br>'), true);
+            } catch (error) {
+                showResult('dom-test-result', `❌ 오류: ${error.message}`, false);
+            }
+        }
+
+        // 3. 이미지 업로드 테스트
+        function testImageUpload() {
+            try {
+                const fileInput = document.getElementById('test-image');
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    showResult('image-test-result', '❌ 이미지를 선택해주세요', false);
+                    return;
+                }
+                
+                if (file.type.startsWith('image/')) {
+                    showResult('image-test-result', `✅ 이미지 파일: ${file.name} (${file.type})`, true);
+                } else {
+                    showResult('image-test-result', '❌ 이미지 파일이 아닙니다', false);
+                }
+            } catch (error) {
+                showResult('image-test-result', `❌ 오류: ${error.message}`, false);
+            }
+        }
+
+        // 4. 전체 플로우 테스트
+        function testFullFlow() {
+            try {
+                // 1단계: 동의 체크박스
+                const photoConsent = document.getElementById('photo-consent');
+                const serviceTerms = document.getElementById('service-terms');
+                
+                if (photoConsent && serviceTerms) {
+                    showResult('flow-test-result', '✅ 1단계: 동의 체크박스 존재', true);
+                } else {
+                    showResult('flow-test-result', '❌ 1단계: 동의 체크박스 누락', false);
+                    return;
+                }
+                
+                // 2단계: 이미지 업로드
+                const uploadZone = document.getElementById('upload-zone');
+                if (uploadZone) {
+                    showResult('flow-test-result', '✅ 2단계: 업로드 영역 존재', true);
+                } else {
+                    showResult('flow-test-result', '❌ 2단계: 업로드 영역 누락', false);
+                    return;
+                }
+                
+                // 3단계: 분석 영역
+                const progressFill = document.getElementById('progress-fill');
+                if (progressFill) {
+                    showResult('flow-test-result', '✅ 3단계: 진행률 바 존재', true);
+                } else {
+                    showResult('flow-test-result', '❌ 3단계: 진행률 바 누락', false);
+                    return;
+                }
+                
+                showResult('flow-test-result', '✅ 모든 단계 요소가 존재합니다!', true);
+                
+            } catch (error) {
+                showResult('flow-test-result', `❌ 오류: ${error.message}`, false);
+            }
+        }
+
+        // 페이지 로드 시 자동 테스트
+        window.addEventListener('load', function() {
+            console.log('테스트 페이지가 로드되었습니다.');
+            testBasicFunctions();
+        });
+    </script>
+</body>
+</html>
