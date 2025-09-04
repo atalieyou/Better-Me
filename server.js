@@ -12,7 +12,7 @@ const { analyzeFaceWithChatGPT5, getMakeupTips } = require('./services/gpt4oServ
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 // WebSocket 연결 관리
 const clients = new Map(); // sessionId -> WebSocket 연결
@@ -99,8 +99,8 @@ app.use(cors({
     ].filter(Boolean),
     credentials: true
 }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // 정적 파일 서빙 (프론트엔드)
 app.use(express.static(__dirname));
@@ -125,7 +125,7 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10 * 1024 * 1024 // 10MB
+        fileSize: parseInt(process.env.MAX_FILE_SIZE) || 20 * 1024 * 1024 // 20MB
     },
     fileFilter: function (req, file, cb) {
         // 이미지 파일만 허용

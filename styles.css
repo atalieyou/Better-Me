@@ -1345,21 +1345,28 @@ body {
 /* 5단계 step-buttons */
 #step-5 .step-buttons {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 30px;
-}
-
-#step-5 .step-buttons-center {
-    flex: 1;
-    display: flex;
     justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 40px;
+    padding: 24px 0;
 }
 
-#step-5 .step-buttons-right {
-    flex: 1;
-    display: flex;
-    justify-content: flex-end;
+#step-5 .btn {
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-family: 'Inter', 'Noto Sans KR', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 160px;
+    justify-content: center;
 }
 
 /* 6단계 step-buttons - 5단계와 동일 */

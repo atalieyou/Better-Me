@@ -1149,7 +1149,7 @@ function handleDrop(event, type) {
 }
 
 // 이미지 압축 함수 (권장 설정)
-function compressImage(file, quality = 0.75, maxSize = 800) {
+function compressImage(file, quality = 0.5, maxSize = 500) {
     return new Promise((resolve, reject) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -1238,7 +1238,7 @@ async function processImageFile(file, type) {
         console.log(`${type} 이미지 압축 시작...`);
         
         // 이미지 압축 적용 (권장 설정: 품질 0.75, 최대 크기 800x800)
-        const compressedImage = await compressImage(file, 0.75, 800);
+        const compressedImage = await compressImage(file, 0.5, 500);
         
         uploadedImages[type] = {
             file: file,
