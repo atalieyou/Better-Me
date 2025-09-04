@@ -12,7 +12,7 @@ const { analyzeFaceWithChatGPT5, getMakeupTips } = require('./services/gpt4oServ
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 
 // WebSocket 연결 관리
 const clients = new Map(); // sessionId -> WebSocket 연결
@@ -628,10 +628,29 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Better Me App Backend Server가 포트 ${PORT}에서 실행 중입니다.`);
     console.log(`📁 업로드 디렉토리: ${uploadDir}`);
     console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5500'}`);
+    console.log(`🔑 OpenAI API Key: ${process.env.OPENAI_API_KEY ? '설정됨' : '설정되지 않음'}`);
     console.log(`🔗 로컬 접속: http://localhost:${PORT}`);
     console.log(`🔗 네트워크 접속: http://10.10.11.167:${PORT}`);
     console.log(`📱 모바일 접속: http://10.10.11.167:${PORT}`);
     console.log(`🔌 WebSocket 서버가 활성화되었습니다.`);
+});
+
+// 에러 핸들링
+server.on('error', (error) => {
+    console.error('서버 오류:', error);
+    if (error.code === 'EADDRINUSE') {
+        console.error(`포트 ${PORT}가 이미 사용 중입니다.`);
+    }
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('처리되지 않은 예외:', error);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('처리되지 않은 Promise 거부:', reason);
+    process.exit(1);
 });
 
 module.exports = app;
