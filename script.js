@@ -6,9 +6,16 @@ let feedbackData = null;
 
 // API URL을 동적으로 가져오는 함수
 function getApiBaseUrl() {
-    return window.location.hostname === 'localhost' 
-        ? 'http://localhost:3000' 
-        : `https://${window.location.hostname}`;
+    const hostname = window.location.hostname;
+    const port = window.location.port || '3000';
+    
+    // localhost나 로컬 IP인 경우 HTTP 사용
+    if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+        return `http://${hostname}:${port}`;
+    }
+    
+    // 외부 도메인인 경우 HTTPS 사용
+    return `https://${hostname}`;
 }
 
 // WebSocket 관련 전역 변수
@@ -429,7 +436,12 @@ function showStep(step) {
         // 현재 단계 패널 표시
         const currentStepPanel = document.getElementById(`step-${step}`);
         if (currentStepPanel) {
-            currentStepPanel.classList.add('active');
+            // 6단계는 step-6-fullwidth 클래스 사용
+            if (step === 6) {
+                currentStepPanel.classList.add('active');
+            } else {
+                currentStepPanel.classList.add('active');
+            }
             console.log(`단계 ${step} 패널 활성화 완료`);
         } else {
             console.error(`단계 ${step} 패널을 찾을 수 없습니다`);
@@ -1384,7 +1396,9 @@ async function startAnalysis() {
             });
 
             if (!response.ok) {
-                throw new Error(`API 호출 실패: ${response.status}`);
+                const errorText = await response.text();
+                console.error('API 오류 응답:', response.status, errorText);
+                throw new Error(`API 호출 실패: ${response.status} - ${errorText}`);
             }
 
             const result = await response.json();
@@ -1433,8 +1447,13 @@ async function startAnalysis() {
             progressText.textContent = '분석 오류 발생';
             await new Promise(resolve => setTimeout(resolve, 1000));
             
-            console.error('분석 처리 중 오류 발생:', apiError.message);
-            showError('분석 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+            console.error('분석 처리 중 오류 발생:', apiError);
+            console.error('오류 상세 정보:', {
+                message: apiError.message,
+                stack: apiError.stack,
+                name: apiError.name
+            });
+            showError(`분석 처리 중 오류가 발생했습니다: ${apiError.message}`);
         }
 
     } catch (error) {
@@ -2259,7 +2278,7 @@ function displayMakeupTips() {
                     </div>
                     <div class="loading-description">
                         AI가 분석 결과를 바탕으로 맞춤형 메이크업 팁을 생성하고 있습니다.<br>
-                        잠시만 기다려주세요.
+                        3분에서 5분간 정밀한 검사가 진행됩니다.
                     </div>
                     <div class="loading-status">
                         <div class="status-title">현재 상태:</div>

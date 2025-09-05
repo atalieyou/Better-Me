@@ -48,10 +48,12 @@ wss.on('connection', (ws, req) => {
                                     reason: makeupTipsResult.reason
                                 }));
                             } else {
+                                console.log('WebSocket으로 메이크업 팁 전송 시작...');
                                 ws.send(JSON.stringify({
                                     type: 'makeup_tips_ready',
                                     tips: makeupTipsResult.raw_makeup_tips
                                 }));
+                                console.log('WebSocket 메이크업 팁 전송 완료');
                             }
                         } catch (error) {
                             console.error('메이크업 팁 생성 오류:', error);
@@ -91,7 +93,7 @@ wss.on('connection', (ws, req) => {
 app.use(cors({
     origin: [
         'http://localhost:3000',
-        'http://10.10.11.167:3000',
+        'http://192.168.1.82:3000',
         'https://betterme-ten.vercel.app',
         'https://better-jn20tnnp3-atalies-projects.vercel.app',
         'https://better-hejanbd08-atalies-projects.vercel.app',
@@ -137,6 +139,12 @@ const upload = multer({
         }
     }
 });
+
+// 분석 결과 저장용 메모리 저장소 (실제 운영에서는 데이터베이스 사용 권장)
+const analysisResults = new Map();
+
+// 분석 진행 상태 관리용 메모리 저장소
+const analysisProgress = new Map();
 
 // 라우트 설정
 app.get('/', (req, res) => {
@@ -257,11 +265,6 @@ app.post('/api/analyze-face', upload.fields([
     }
 });
 
-// 분석 결과 저장용 메모리 저장소 (실제 운영에서는 데이터베이스 사용 권장)
-const analysisResults = new Map();
-
-// 분석 진행 상태 관리용 메모리 저장소
-const analysisProgress = new Map();
 
 // 분석 결과 저장 API
 app.post('/api/save-analysis-result', async (req, res) => {
@@ -630,8 +633,8 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5500'}`);
     console.log(`🔑 OpenAI API Key: ${process.env.OPENAI_API_KEY ? '설정됨' : '설정되지 않음'}`);
     console.log(`🔗 로컬 접속: http://localhost:${PORT}`);
-    console.log(`🔗 네트워크 접속: http://10.10.11.167:${PORT}`);
-    console.log(`📱 모바일 접속: http://10.10.11.167:${PORT}`);
+    console.log(`🔗 네트워크 접속: http://192.168.1.82:${PORT}`);
+    console.log(`📱 모바일 접속: http://192.168.1.82:${PORT}`);
     console.log(`🔌 WebSocket 서버가 활성화되었습니다.`);
 });
 
