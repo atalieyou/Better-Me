@@ -1117,6 +1117,25 @@ function showCurrentStep() {
                     } else {
                         console.log('5단계에서 메이크업 팁이 아직 생성되지 않았습니다.');
                     }
+                    
+                    // 5단계로 이동할 때 "분석된 이미지들" 제목으로 스크롤
+                    const step5Element = document.getElementById('step-5');
+                    if (step5Element) {
+                        const analyzedImagesTitle = step5Element.querySelector('h3');
+                        if (analyzedImagesTitle) {
+                            analyzedImagesTitle.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'start' 
+                            });
+                            console.log('5단계 "분석된 이미지들" 제목으로 스크롤 완료');
+                        } else {
+                            console.log('분석된 이미지들 제목을 찾을 수 없어 상단으로 스크롤');
+                            step5Element.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'start' 
+                            });
+                        }
+                    }
                 }, 100);
             }
         } else {
@@ -1124,6 +1143,42 @@ function showCurrentStep() {
             console.log(`패널 ${panelStep} 비활성화됨`);
         }
     });
+    
+    // 6단계는 step-content 클래스 사용
+    if (currentStep === 6) {
+        const step6Element = document.getElementById('step-6');
+        if (step6Element) {
+            step6Element.classList.add('active');
+            console.log('6단계 (step-content) 활성화됨');
+            
+            // 6단계로 이동할 때 "메이크업 팁" 제목으로 스크롤
+            setTimeout(() => {
+                const makeupTipsTitle = step6Element.querySelector('h4');
+                if (makeupTipsTitle) {
+                    makeupTipsTitle.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                    console.log('6단계 "메이크업 팁" 제목으로 스크롤 완료');
+                } else {
+                    console.log('메이크업 팁 제목을 찾을 수 없어 상단으로 스크롤');
+                    step6Element.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }
+            }, 100); // 약간의 지연을 두어 DOM 업데이트 후 스크롤
+        } else {
+            console.error('6단계 요소를 찾을 수 없습니다.');
+        }
+    } else {
+        // 6단계가 아닐 때는 6단계 요소 비활성화
+        const step6Element = document.getElementById('step-6');
+        if (step6Element) {
+            step6Element.classList.remove('active');
+            console.log('6단계 (step-content) 비활성화됨');
+        }
+    }
     
     console.log('showCurrentStep 함수 완료');
 }
