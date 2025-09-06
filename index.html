@@ -235,9 +235,14 @@
                 <!-- 3단계: 사진 업로드 -->
                 <div class="step-panel" id="step-3">
                     <h2>사진 업로드</h2>
-                    <div class="upload-instructions">
-                        <h3>3장의 사진을 업로드해주세요</h3>
-                        <p>더 정확한 AI 분석을 위해 다음 3장의 사진이 필요합니다:</p>
+                    
+                    <div class="upload-requirements">
+                        <ul>
+                            <li>얼굴 분석은 메이크업하지 않은 맨 얼굴로 진행됩니다</li>
+                            <li>머리를 묶어 이목구비를 가리지 않도록 해주세요</li>
+                            <li>사진 촬영을 통해 분석이 진행되니 카메라 렌즈가 깨끗한지 확인해주세요</li>
+                            <li>분석은 총 1~3분 소요됩니다</li>
+                        </ul>
                     </div>
                     
                     <div class="upload-grid">
@@ -287,15 +292,6 @@
                         </div>
                     </div>
                     
-                    <div class="upload-requirements">
-                        <ul>
-                            <li>얼굴 분석은 메이크업하지 않은 맨 얼굴로 진행됩니다</li>
-                            <li>머리를 묶어 이목구비를 가리지 않도록 해주세요</li>
-                            <li>사진 촬영을 통해 분석이 진행되니 카메라 렌즈가 깨끗한지 확인해주세요</li>
-                            <li>분석은 총 1~3분 소요됩니다</li>
-                        </ul>
-                    </div>
-                    
                     <div class="step-buttons-center">
                         <button class="btn btn-primary" onclick="nextStep()" id="next-step-3" disabled>다음 단계</button>
                     </div>
@@ -307,7 +303,7 @@
                     <div class="loading-page">
                         <div class="loading-content">
                             <div class="loading-spinner"></div>
-                            <h3>1분에서 2분간 정밀한 검사가 진행됩니다</h3>
+                            <h3>1~2분간 정밀한 분석이 진행됩니다</h3>
                             
                             <!-- 진행률 바 추가 -->
                             <div class="progress-container">
@@ -327,7 +323,7 @@
 
                         <!-- 5단계: 피드백 제공 -->
         <div class="step-panel" id="step-5">
-            <h2>AI 브랜딩 실장이 바라본 당신의 얼굴</h2>
+            <h2>얼굴분석 결과</h2>
             
             <!-- 업로드된 이미지들 표시 -->
             <div class="uploaded-image-section">
@@ -363,7 +359,6 @@
             </div>
             
             <div class="step-buttons">
-                <button class="btn btn-secondary" onclick="prevStep()">이전 단계</button>
                 <button class="btn btn-success" onclick="saveStep5AsImage()" id="save-step5">
                     <i class="fas fa-image"></i> 이미지로 저장하기
                 </button>

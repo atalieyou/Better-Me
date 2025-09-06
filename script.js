@@ -152,7 +152,7 @@ function handleAnalysisComplete(result) {
         analysisResults = result;
         
         // 분석 결과를 화면에 표시
-        displayFullGPTResponse(analysisResults);
+        displayFullAIResponse(analysisResults);
         
         // 4단계에서 5단계로 자동 이동
         currentStep = 5;
@@ -514,7 +514,7 @@ function updateUIAfterRestore() {
         
                     // 분석 결과가 있다면 표시
             if (analysisResults) {
-                displayFullGPTResponse(analysisResults);
+                displayFullAIResponse(analysisResults);
                 // 상태 저장 추가
                 saveAppState();
             }
@@ -1521,7 +1521,7 @@ async function startAnalysis() {
                 showCurrentStep();
                 
                 // 분석 결과 표시
-                displayFullGPTResponse(analysisResults);
+                displayFullAIResponse(analysisResults);
                 
                 console.log('5단계로 이동 완료');
             } else {
@@ -1562,8 +1562,8 @@ async function startAnalysis() {
 
 
 // GPT-4o 전체 응답을 표시하는 함수
-function displayFullGPTResponse(analysisResults) {
-    console.log('displayFullGPTResponse 함수 호출됨:', analysisResults);
+function displayFullAIResponse(analysisResults) {
+    console.log('displayFullAIResponse 함수 호출됨:', analysisResults);
     
     // 분석 결과가 없는 경우 처리
     if (!analysisResults) {
