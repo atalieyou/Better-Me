@@ -14,8 +14,9 @@
 <body>
     <!-- 헤더 -->
     <header class="header">
-        <h1><i class="fas fa-magic"></i> 더 나은 나로 한 걸음, Better Me</h1>
-        <p>AI가 분석하고 개선 방안을 제시합니다</p>
+        <div class="logo-container">
+            <img src="better-me-logo.png" alt="Better Me" class="main-logo">
+        </div>
     </header>
 
     <!-- 메인 컨텐츠 -->
@@ -41,10 +42,6 @@
                 <div class="step" data-step="5">
                     <div class="step-number">5</div>
                     <div class="step-label">피드백 제공</div>
-                </div>
-                <div class="step" data-step="6">
-                    <div class="step-number">6</div>
-                    <div class="step-label">메이크업 팁</div>
                 </div>
             </div>
 
@@ -106,52 +103,105 @@
                     <h2>결제</h2>
                     <div class="payment-section">
                         <div class="payment-info">
-                            <h3>AI 외모 진단 및 메이크업 팁 서비스</h3>
+                            <h3>AI 외모 진단 서비스</h3>
                             <div class="service-details">
                                 <div class="service-item">
                                     <i class="fas fa-robot"></i>
                                     <span>AI 외모 분석</span>
                                     <span class="price">₩1,500</span>
                                 </div>
-                                <div class="service-item">
-                                    <i class="fas fa-palette"></i>
-                                    <span>맞춤형 메이크업 팁</span>
-                                    <span class="price">₩1,500</span>
-                                </div>
                                 <div class="service-item total">
                                     <i class="fas fa-calculator"></i>
                                     <span>총 결제 금액</span>
-                                    <span class="price total-price">₩3,000</span>
+                                    <span class="price total-price">₩1,500</span>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="payment-methods">
                             <h3>결제 방법 선택</h3>
-                            <div class="payment-option">
-                                <input type="radio" id="card-payment" name="payment-method" value="card" checked onchange="togglePaymentForm()">
-                                <label for="card-payment">
-                                    <i class="fas fa-credit-card"></i>
-                                    신용카드/체크카드
-                                </label>
-                            </div>
-                            <div class="payment-option">
-                                <input type="radio" id="bank-transfer" name="payment-method" value="transfer" onchange="togglePaymentForm()">
-                                <label for="bank-transfer">
-                                    <i class="fas fa-university"></i>
-                                    계좌이체
-                                </label>
-                            </div>
-                            <div class="payment-option">
-                                <input type="radio" id="mobile-payment" name="payment-method" value="mobile" onchange="togglePaymentForm()">
-                                <label for="bank-transfer">
-                                    <i class="fas fa-mobile-alt"></i>
-                                    모바일 결제
-                                </label>
+                            <div class="payment-options-grid">
+                                <div class="payment-option">
+                                    <input type="radio" id="kakao-pay" name="payment-method" value="kakao" checked onchange="togglePaymentForm()">
+                                    <label for="kakao-pay">
+                                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJTNi40NzcgMjIgMTIgMjJTMjIgMTcuNTIzIDIyIDEyUzE3LjUyMyAyIDEyIDJaTTEyIDIwQzcuNTg5IDIwIDQgMTYuNDExIDQgMTJTNy41ODkgNCAxMiA0UzIwIDcuNTg5IDIwIDEyUzE2LjQxMSAyMCAxMiAyMFoiIGZpbGw9IiMzRjUxRUEiLz4KPHBhdGggZD0iTTEyIDZDNy41ODkgNiA0IDkuNTg5IDQgMTRTNy41ODkgMjIgMTIgMjJTMjAgMTguNDExIDIwIDE0UzE2LjQxMSA2IDEyIDZaTTEyIDIwQzguNjg2IDIwIDYgMTcuMzE0IDYgMTRTOC42ODYgOCAxMiA4UzE4IDEwLjY4NiAxOCAxNFMxNS4zMTQgMjAgMTIgMjBaIiBmaWxsPSIjM0Y1MUVBIi8+Cjwvc3ZnPgo=" alt="카카오페이" class="payment-logo">
+                                        카카오페이
+                                    </label>
+                                </div>
+                                <div class="payment-option">
+                                    <input type="radio" id="naver-pay" name="payment-method" value="naver" onchange="togglePaymentForm()">
+                                    <label for="naver-pay">
+                                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJTNi40NzcgMjIgMTIgMjJTMjIgMTcuNTIzIDIyIDEyUzE3LjUyMyAyIDEyIDJaTTEyIDIwQzcuNTg5IDIwIDQgMTYuNDExIDQgMTJTNy41ODkgNCAxMiA0UzIwIDcuNTg5IDIwIDEyUzE2LjQxMSAyMCAxMiAyMFoiIGZpbGw9IiMwM0NBNzUiLz4KPHBhdGggZD0iTTEyIDZDNy41ODkgNiA0IDkuNTg5IDQgMTRTNy41ODkgMjIgMTIgMjJTMjAgMTguNDExIDIwIDE0UzE2LjQxMSA2IDEyIDZaTTEyIDIwQzguNjg2IDIwIDYgMTcuMzE0IDYgMTRTOC42ODYgOCAxMiA4UzE4IDEwLjY4NiAxOCAxNFMxNS4zMTQgMjAgMTIgMjBaIiBmaWxsPSIjMDNDQTc1Ii8+Cjwvc3ZnPgo=" alt="네이버페이" class="payment-logo">
+                                        네이버페이
+                                    </label>
+                                </div>
+                                <div class="payment-option">
+                                    <input type="radio" id="toss-pay" name="payment-method" value="toss" onchange="togglePaymentForm()">
+                                    <label for="toss-pay">
+                                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJTNi40NzcgMjIgMTIgMjJTMjIgMTcuNTIzIDIyIDEyUzE3LjUyMyAyIDEyIDJaTTEyIDIwQzcuNTg5IDIwIDQgMTYuNDExIDQgMTJTNy41ODkgNCAxMiA0UzIwIDcuNTg5IDIwIDEyUzE2LjQxMSAyMCAxMiAyMFoiIGZpbGw9IiMwMDQ0RkYiLz4KPHBhdGggZD0iTTEyIDZDNy41ODkgNiA0IDkuNTg5IDQgMTRTNy41ODkgMjIgMTIgMjJTMjAgMTguNDExIDIwIDE0UzE2LjQxMSA2IDEyIDZaTTEyIDIwQzguNjg2IDIwIDYgMTcuMzE0IDYgMTRTOC42ODYgOCAxMiA4UzE4IDEwLjY4NiAxOCAxNFMxNS4zMTQgMjAgMTIgMjBaIiBmaWxsPSIjMDA0NEZGIi8+Cjwvc3ZnPgo=" alt="토스페이" class="payment-logo">
+                                        토스페이
+                                    </label>
+                                </div>
+                                <div class="payment-option">
+                                    <input type="radio" id="card-payment" name="payment-method" value="card" onchange="togglePaymentForm()">
+                                    <label for="card-payment">
+                                        <i class="fas fa-credit-card"></i>
+                                        신용카드/체크카드
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="payment-form" id="card-payment-form">
+                        <!-- 카카오페이 폼 -->
+                        <div class="payment-form" id="kakao-payment-form">
+                            <h3>카카오페이 결제</h3>
+                            <div class="payment-info-card">
+                                <p>카카오페이로 안전하게 결제하세요</p>
+                                <div class="payment-summary">
+                                    <p><strong>결제 금액:</strong> ₩1,500</p>
+                                    <p><strong>결제 수단:</strong> 카카오페이</p>
+                                </div>
+                                <button class="btn btn-primary payment-btn" onclick="processKakaoPayment()">
+                                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJTNi40NzcgMjIgMTIgMjJTMjIgMTcuNTIzIDIyIDEyUzE3LjUyMyAyIDEyIDJaTTEyIDIwQzcuNTg5IDIwIDQgMTYuNDExIDQgMTJTNy41ODkgNCAxMiA0UzIwIDcuNTg5IDIwIDEyUzE2LjQxMSAyMCAxMiAyMFoiIGZpbGw9IiMzRjUxRUEiLz4KPC9zdmc+Cg==" alt="카카오페이" class="btn-logo">
+                                    카카오페이로 결제하기
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 네이버페이 폼 -->
+                        <div class="payment-form" id="naver-payment-form" style="display: none;">
+                            <h3>네이버페이 결제</h3>
+                            <div class="payment-info-card">
+                                <p>네이버페이로 안전하게 결제하세요</p>
+                                <div class="payment-summary">
+                                    <p><strong>결제 금액:</strong> ₩1,500</p>
+                                    <p><strong>결제 수단:</strong> 네이버페이</p>
+                                </div>
+                                <button class="btn btn-primary payment-btn" onclick="processNaverPayment()">
+                                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJTNi40NzcgMjIgMTIgMjJTMjIgMTcuNTIzIDIyIDEyUzE3LjUyMyAyIDEyIDJaTTEyIDIwQzcuNTg5IDIwIDQgMTYuNDExIDQgMTJTNy41ODkgNCAxMiA0UzIwIDcuNTg5IDIwIDEyUzE2LjQxMSAyMCAxMiAyMFoiIGZpbGw9IiMwM0NBNzUiLz4KPC9zdmc+Cg==" alt="네이버페이" class="btn-logo">
+                                    네이버페이로 결제하기
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 토스페이 폼 -->
+                        <div class="payment-form" id="toss-payment-form" style="display: none;">
+                            <h3>토스페이 결제</h3>
+                            <div class="payment-info-card">
+                                <p>토스페이로 안전하게 결제하세요</p>
+                                <div class="payment-summary">
+                                    <p><strong>결제 금액:</strong> ₩1,500</p>
+                                    <p><strong>결제 수단:</strong> 토스페이</p>
+                                </div>
+                                <button class="btn btn-primary payment-btn" onclick="processTossPayment()">
+                                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJTNi40NzcgMjIgMTIgMjJTMjIgMTcuNTIzIDIyIDEyUzE3LjUyMyAyIDEyIDJaTTEyIDIwQzcuNTg5IDIwIDQgMTYuNDExIDQgMTJTNy41ODkgNCAxMiA0UzIwIDcuNTg5IDIwIDEyUzE2LjQxMSAyMCAxMiAyMFoiIGZpbGw9IiMwMDQ0RkYiLz4KPC9zdmc+Cg==" alt="토스페이" class="btn-logo">
+                                    토스페이로 결제하기
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 카드 결제 폼 -->
+                        <div class="payment-form" id="card-payment-form" style="display: none;">
                             <h3>카드 정보 입력</h3>
                             <div class="form-group">
                                 <label for="card-number">카드 번호</label>
@@ -170,26 +220,6 @@
                             <div class="form-group">
                                 <label for="card-holder">카드 소유자명</label>
                                 <input type="text" id="card-holder" placeholder="홍길동">
-                            </div>
-                        </div>
-                        
-                        <div class="payment-form" id="transfer-payment-form" style="display: none;">
-                            <h3>계좌이체 정보</h3>
-                            <div class="bank-info">
-                                <p><strong>은행:</strong> 신한은행</p>
-                                <p><strong>계좌번호:</strong> 110-123-456789</p>
-                                <p><strong>예금주:</strong> (주)뷰티AI</p>
-                                <p><strong>입금 확인 후 서비스가 시작됩니다.</strong></p>
-                            </div>
-                        </div>
-                        
-                        <div class="payment-form" id="mobile-payment-form" style="display: none;">
-                            <h3>모바일 결제</h3>
-                            <div class="mobile-payment-info">
-                                <p>모바일 결제는 별도 앱을 통해 진행됩니다.</p>
-                                <button class="btn btn-primary" onclick="processMobilePayment()">
-                                    <i class="fas fa-mobile-alt"></i> 모바일 결제 시작
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -279,7 +309,7 @@
                     <div class="loading-page">
                         <div class="loading-content">
                             <div class="loading-spinner"></div>
-                            <h3>3분에서 5분간 정밀한 검사가 진행됩니다</h3>
+                            <h3>1분에서 2분간 정밀한 검사가 진행됩니다</h3>
                             
                             <!-- 진행률 바 추가 -->
                             <div class="progress-container">
@@ -335,57 +365,13 @@
             </div>
             
             <div class="step-buttons">
-                <button class="btn btn-secondary" onclick="saveStep5AsImage()" id="save-step5">
+                <button class="btn btn-secondary" onclick="prevStep()">이전 단계</button>
+                <button class="btn btn-success" onclick="saveStep5AsImage()" id="save-step5">
                     <i class="fas fa-image"></i> 이미지로 저장하기
                 </button>
-                <button class="btn btn-primary" onclick="nextStep()" id="next-step-5">다음 단계</button>
             </div>
         </div>
 
-        <!-- 6단계: 메이크업 및 시술 팁 -->
-        <div id="step-6" class="step-panel">
-            <h2>AI 메이크업 실장의 맞춤형 조언</h2>
-            
-            <!-- 업로드된 이미지들 표시 -->
-            <div class="uploaded-image-section">
-                <h3><i class="fas fa-image"></i> 분석된 이미지들</h3>
-                <div class="analysis-images-grid">
-                    <div class="analysis-image-item">
-                        <h4><i class="fas fa-user"></i> 정면 사진</h4>
-                        <img id="step6-uploaded-image-front" src="" alt="정면 사진" class="analysis-image">
-                    </div>
-                    <div class="analysis-image-item">
-                        <h4><i class="fas fa-user-friends"></i> 45도 측면 사진</h4>
-                        <img id="step6-uploaded-image-45" src="" alt="45도 측면 사진" class="analysis-image">
-                    </div>
-                    <div class="analysis-image-item">
-                        <h4><i class="fas fa-user-secret"></i> 90도 측면 사진</h4>
-                        <img id="step6-uploaded-image-90" src="" alt="90도 측면 사진" class="analysis-image">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="feedback-container">
-                <div class="feedback-details">
-                    <div class="complete-analysis">
-                        <div class="point-display" id="makeup-point-display">
-                            <!-- 메이크업 팁 포인트가 여기에 큰 폰트로 표시됩니다 -->
-                        </div>
-                        <h4><i class="fas fa-magic"></i> AI 메이크업 실장의 맞춤형 조언</h4>
-                        <div class="analysis-content" id="makeup-tips-content">
-                            <p>메이크업 팁을 기다리는 중...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="step-buttons">
-                <button class="btn btn-secondary" onclick="prevStep()">이전 단계</button>
-                <button class="btn btn-success" onclick="saveAsImages()">
-                    <i class="fas fa-image"></i> 이미지로 저장하기
-                </button>
-            </div>
-        </div>
             </div>
         </main>
 

@@ -83,10 +83,6 @@ function setupWebSocket() {
                         handleAnalysisComplete(data.result);
                         break;
                         
-                    case 'makeup_tips_ready':
-                        // 메이크업 팁 생성 완료 알림
-                        handleMakeupTipsReady(data.tips);
-                        break;
                         
                     case 'error':
                         // 서버 오류 알림
@@ -155,13 +151,13 @@ function handleAnalysisComplete(result) {
         // 분석 결과 저장
         analysisResults = result;
         
+        // 분석 결과를 화면에 표시
+        displayFullGPTResponse(analysisResults);
+        
         // 4단계에서 5단계로 자동 이동
         currentStep = 5;
         updateProgressSteps();
         showCurrentStep();
-        
-        // 분석 결과 표시
-        displayFullGPTResponse(analysisResults);
         
         // 상태 저장
         saveAppState();
@@ -174,50 +170,15 @@ function handleAnalysisComplete(result) {
     }
 }
 
-// 메이크업 팁 준비 완료 처리
-function handleMakeupTipsReady(tips) {
-    console.log('메이크업 팁 준비 완료 처리:', tips);
-    
-    try {
-        // 메이크업 팁 저장
-        window.makeupTips = tips;
-        
-        // 현재 단계에 따라 적절한 단계로 이동
-        if (currentStep === 4) {
-            // 4단계에서 5단계로 자동 이동
-            console.log('4단계에서 5단계로 자동 이동');
-            currentStep = 5;
-            updateProgressSteps();
-            showCurrentStep();
-            
-            // 5단계에서 메이크업 팁 표시
-            displayMakeupTips();
-        } else if (currentStep === 5) {
-        // 5단계에서 6단계로 자동 이동
-            console.log('5단계에서 6단계로 자동 이동');
-        currentStep = 6;
-        updateProgressSteps();
-        showCurrentStep();
-        
-            // 6단계에서 메이크업 팁 표시
-        displayMakeupTips();
-        }
-        
-        // 상태 저장
-        saveAppState();
-        
-        console.log('메이크업 팁 준비 완료 - 자동 진행됨');
-        
-    } catch (error) {
-        console.error('메이크업 팁 준비 완료 처리 중 오류:', error);
-    }
-}
 
 // 앱 초기화
 function initializeApp() {
     console.log('=== 앱 초기화 시작 ===');
     
     try {
+        // 카카오페이 SDK 초기화
+        initializeKakaoPay();
+        
         // URL에서 공유 링크 확인
         const pathSegments = window.location.pathname.split('/');
         const shareResultId = pathSegments[pathSegments.length - 1];
@@ -230,6 +191,9 @@ function initializeApp() {
         
         // 일반 앱 초기화
         console.log('일반 앱 초기화');
+        
+        // URL 파라미터에서 결제 상태 확인
+        checkPaymentStatus();
         
         // 세션 스토리지에서 이전 상태 복원
         restoreAppState();
@@ -259,6 +223,81 @@ function initializeApp() {
     }
 }
 
+// 카카오페이 SDK 초기화
+function initializeKakaoPay() {
+    try {
+        // 카카오페이 JavaScript SDK 초기화
+        if (typeof Kakao !== 'undefined') {
+            // 실제 앱 키로 교체 필요 (현재는 테스트용)
+            Kakao.init('YOUR_KAKAO_APP_KEY');
+            console.log('카카오페이 SDK 초기화 완료');
+        } else {
+            console.warn('카카오페이 SDK를 로드할 수 없습니다.');
+        }
+    } catch (error) {
+        console.error('카카오페이 SDK 초기화 실패:', error);
+    }
+}
+
+// 결제 상태 확인
+function checkPaymentStatus() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const payment = urlParams.get('payment');
+    const step = urlParams.get('step');
+    
+    if (payment === 'success') {
+        console.log('결제 성공 감지');
+        showSuccess('결제가 완료되었습니다!');
+        
+        // 결제 완료 상태 설정
+        window.paymentCompleted = true;
+        
+        // 지정된 단계로 이동
+        if (step) {
+            currentStep = parseInt(step);
+            updateProgressSteps();
+            showCurrentStep();
+            saveAppState();
+        }
+        
+        // URL에서 결제 파라미터 제거
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+        
+    } else if (payment === 'cancel') {
+        console.log('결제 취소 감지');
+        showError('결제가 취소되었습니다.');
+        
+        // 2단계로 이동
+        if (step) {
+            currentStep = parseInt(step);
+            updateProgressSteps();
+            showCurrentStep();
+            saveAppState();
+        }
+        
+        // URL에서 결제 파라미터 제거
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+        
+    } else if (payment === 'fail') {
+        console.log('결제 실패 감지');
+        showError('결제에 실패했습니다. 다시 시도해주세요.');
+        
+        // 2단계로 이동
+        if (step) {
+            currentStep = parseInt(step);
+            updateProgressSteps();
+            showCurrentStep();
+            saveAppState();
+        }
+        
+        // URL에서 결제 파라미터 제거
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+}
+
 // 공유 결과 로드
 async function loadSharedResult(resultId) {
     try {
@@ -278,20 +317,17 @@ async function loadSharedResult(resultId) {
             
             // 결과 데이터 설정
             analysisResults = { raw_analysis: result.result.analysisResult };
-            window.makeupTips = result.result.makeupTips;
             
             // 이미지 데이터 설정 (base64 데이터가 있는 경우)
             if (result.result.uploadedImages) {
                 uploadedImages = result.result.uploadedImages;
             }
             
-            // 6단계로 이동하여 결과 표시
-            currentStep = 6;
+            // 5단계로 이동하여 결과 표시
+            currentStep = 5;
             updateProgressSteps();
             showCurrentStep();
             
-            // 메이크업 팁 표시
-            displayMakeupTips();
             
             // 공유 링크 표시
             updateShareLink(resultId);
@@ -351,9 +387,6 @@ function restoreAppState() {
         } else if (step === 5) {
             console.log('5단계에서 새로고침됨. 5단계에 머뭅니다.');
             currentStep = step;
-        } else if (step === 6) {
-            console.log('6단계에서 새로고침됨. 6단계에 머뭅니다.');
-            currentStep = step;
         } else {
             currentStep = step;
         }
@@ -384,23 +417,12 @@ function restoreAppState() {
             }
         }
         
-        // 저장된 메이크업 팁 복원
-        const savedMakeupTips = sessionStorage.getItem('beautyAI_makeupTips');
-        if (savedMakeupTips) {
-            try {
-                window.makeupTips = JSON.parse(savedMakeupTips);
-                console.log('저장된 메이크업 팁 복원 완료');
-            } catch (e) {
-                console.error('메이크업 팁 파싱 실패:', e);
-            }
-        }
         
         console.log('=== 앱 상태 복원 완료 ===');
         console.log('복원된 상태:', {
             currentStep,
             hasImages: !!uploadedImages,
             hasAnalysis: !!analysisResults,
-            hasMakeupTips: !!window.makeupTips
         });
         
         // 상태 복원 후 UI 업데이트
@@ -436,12 +458,7 @@ function showStep(step) {
         // 현재 단계 패널 표시
         const currentStepPanel = document.getElementById(`step-${step}`);
         if (currentStepPanel) {
-            // 6단계는 step-6-fullwidth 클래스 사용
-            if (step === 6) {
                 currentStepPanel.classList.add('active');
-            } else {
-                currentStepPanel.classList.add('active');
-            }
             console.log(`단계 ${step} 패널 활성화 완료`);
         } else {
             console.error(`단계 ${step} 패널을 찾을 수 없습니다`);
@@ -502,12 +519,6 @@ function updateUIAfterRestore() {
                 saveAppState();
             }
             
-            // 메이크업 팁이 있다면 표시
-            if (window.makeupTips) {
-                displayMakeupTips();
-                // 상태 저장 추가
-                saveAppState();
-            }
         } else {
             console.log(`현재 단계 ${currentStep}에서는 이미지 관련 UI 표시 불필요`);
         }
@@ -538,17 +549,12 @@ function saveAppState() {
             sessionStorage.setItem('beautyAI_analysisResults', JSON.stringify(analysisResults));
         }
         
-        // 메이크업 팁 저장
-        if (window.makeupTips) {
-            sessionStorage.setItem('beautyAI_makeupTips', JSON.stringify(window.makeupTips));
-        }
         
         console.log('=== 앱 상태 저장 완료 ===');
         console.log('저장된 상태:', {
             currentStep,
             hasImages: !!uploadedImages,
             hasAnalysis: !!analysisResults,
-            hasMakeupTips: !!window.makeupTips
         });
         
     } catch (error) {
@@ -662,15 +668,107 @@ function validateConsent() {
 function processPayment() {
     const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
     
-    if (paymentMethod === 'card') {
+    if (paymentMethod === 'kakao') {
+        processKakaoPayment();
+    } else if (paymentMethod === 'toss') {
+        processTossPayment();
+    } else if (paymentMethod === 'naver') {
+        processNaverPayment();
+    } else if (paymentMethod === 'card') {
         if (validateCardPayment()) {
             processCardPayment();
         }
-    } else if (paymentMethod === 'transfer') {
-        processBankTransfer();
-    } else if (paymentMethod === 'mobile') {
-        processMobilePayment();
     }
+}
+
+// 카카오페이 결제 처리
+function processKakaoPayment() {
+    console.log('카카오페이 결제 시작');
+    
+    try {
+        // 카카오페이 SDK가 로드되었는지 확인
+        if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) {
+            console.error('카카오페이 SDK가 초기화되지 않았습니다.');
+            showError('카카오페이 서비스를 사용할 수 없습니다. 잠시 후 다시 시도해주세요.');
+            return;
+        }
+        
+        // 카카오페이 결제 요청
+        Kakao.Pay.request({
+            cid: 'TC0ONETIME', // 테스트용 CID
+            partner_order_id: 'ORDER_' + Date.now(),
+            partner_user_id: 'USER_' + Date.now(),
+            item_name: 'AI 외모 진단',
+            quantity: 1,
+            total_amount: 1490,
+            tax_free_amount: 0,
+            approval_url: window.location.origin + '/kakao-pay/success',
+            cancel_url: window.location.origin + '/kakao-pay/cancel',
+            fail_url: window.location.origin + '/kakao-pay/fail'
+        }).then(function(response) {
+            console.log('카카오페이 결제 요청 성공:', response);
+            
+            // 결제 페이지로 리다이렉트
+            if (response.next_redirect_pc_url) {
+                window.location.href = response.next_redirect_pc_url;
+            } else {
+                throw new Error('결제 URL을 받을 수 없습니다.');
+            }
+        }).catch(function(error) {
+            console.error('카카오페이 결제 요청 실패:', error);
+            showError('카카오페이 결제 요청에 실패했습니다. 다시 시도해주세요.');
+        });
+        
+    } catch (error) {
+        console.error('카카오페이 결제 처리 중 오류:', error);
+        showError('카카오페이 결제 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
+}
+
+// 토스페이먼츠 결제 처리
+function processTossPayment() {
+    console.log('토스페이먼츠 결제 시작');
+    showLoading('토스페이먼츠 결제를 진행하고 있습니다...');
+    
+    // 토스페이먼츠 결제 시뮬레이션
+    setTimeout(() => {
+        hideLoading();
+        showSuccess('토스페이먼츠 결제가 완료되었습니다!');
+        
+        // 결제 완료 처리
+        window.paymentCompleted = true;
+        
+        // 3단계로 이동
+        setTimeout(() => {
+            currentStep = 3;
+            updateProgressSteps();
+            showCurrentStep();
+            saveAppState();
+        }, 1500);
+    }, 2000);
+}
+
+// 네이버페이 결제 처리
+function processNaverPayment() {
+    console.log('네이버페이 결제 시작');
+    showLoading('네이버페이 결제를 진행하고 있습니다...');
+    
+    // 네이버페이 결제 시뮬레이션
+    setTimeout(() => {
+        hideLoading();
+        showSuccess('네이버페이 결제가 완료되었습니다!');
+        
+        // 결제 완료 처리
+        window.paymentCompleted = true;
+        
+        // 3단계로 이동
+        setTimeout(() => {
+            currentStep = 3;
+            updateProgressSteps();
+            showCurrentStep();
+            saveAppState();
+        }, 1500);
+    }, 2000);
 }
 
 // 카드 결제 유효성 검사 (테스트용 - 간소화)
@@ -791,19 +889,22 @@ function togglePaymentForm() {
     const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
     
     // 모든 결제 폼 숨김
+    document.getElementById('kakao-payment-form').style.display = 'none';
+    document.getElementById('toss-payment-form').style.display = 'none';
+    document.getElementById('naver-payment-form').style.display = 'none';
     document.getElementById('card-payment-form').style.display = 'none';
-    document.getElementById('transfer-payment-form').style.display = 'none';
-    document.getElementById('mobile-payment-form').style.display = 'none';
     
     // 선택된 결제 방법에 따라 폼 표시
-    if (paymentMethod === 'card') {
+    if (paymentMethod === 'kakao') {
+        document.getElementById('kakao-payment-form').style.display = 'block';
+    } else if (paymentMethod === 'toss') {
+        document.getElementById('toss-payment-form').style.display = 'block';
+    } else if (paymentMethod === 'naver') {
+        document.getElementById('naver-payment-form').style.display = 'block';
+    } else if (paymentMethod === 'card') {
         document.getElementById('card-payment-form').style.display = 'block';
         // 테스트용 샘플 데이터 자동 입력
         fillTestCardData();
-    } else if (paymentMethod === 'transfer') {
-        document.getElementById('transfer-payment-form').style.display = 'block';
-    } else if (paymentMethod === 'mobile') {
-        document.getElementById('mobile-payment-form').style.display = 'block';
     }
 }
 
@@ -932,38 +1033,10 @@ async function nextStep() {
                 updateProgressSteps();
                 showCurrentStep();
                 
-            // 5단계에서 메이크업 팁 표시 (있는 경우)
-            if (window.makeupTips && window.makeupTips.length > 0) {
-                displayMakeupTips();
-            }
                 
                 // 상태 저장
                 saveAppState();
         } else if (currentStep === 5) {
-            // 5단계에서 6단계로 이동할 때
-            console.log('=== 5단계에서 6단계로 이동 시도 ===');
-            console.log('이동 전 currentStep:', currentStep);
-            
-            currentStep = 6;
-            console.log('이동 후 currentStep:', currentStep);
-            
-            console.log('진행 단계 업데이트 시작...');
-            updateProgressSteps();
-            console.log('진행 단계 업데이트 완료');
-            
-            console.log('현재 단계 표시 시작...');
-            showCurrentStep();
-            console.log('현재 단계 표시 완료');
-            
-            // 6단계에서 메이크업 팁 표시
-            console.log('메이크업 팁 표시 시작...');
-            displayMakeupTips();
-            console.log('메이크업 팁 표시 완료');
-            
-            // 분석 결과 저장 API 호출 (자동 저장 - 메시지 없음)
-            console.log('분석 결과 자동 저장 시작...');
-            saveAnalysisResultToServer(true); // 자동 저장 플래그 전달
-            console.log('분석 결과 자동 저장 완료');
             
             // 상태 저장
             console.log('상태 저장 시작...');
@@ -1078,10 +1151,10 @@ function showCurrentStep() {
                 }, 100);
             }
             
-            // 5단계일 때 이미지와 메이크업 팁 표시
+            // 5단계일 때 이미지 표시
             if (panelStep === 5) {
                 setTimeout(() => {
-                    console.log('=== 5단계 활성화 시 이미지 및 메이크업 팁 확인 ===');
+                    console.log('=== 5단계 활성화 시 이미지 확인 ===');
                     
                     // 5단계에서 업로드된 이미지들 표시 (3장 모두)
                 if (uploadedImages.front && uploadedImages.front.dataUrl) {
@@ -1106,17 +1179,7 @@ function showCurrentStep() {
                     }
                 }
                 
-                    console.log('window.makeupTips 상태:', window.makeupTips);
-                    console.log('window.makeupTips 타입:', typeof window.makeupTips);
-                    console.log('window.makeupTips 길이:', window.makeupTips ? window.makeupTips.length : 'undefined');
                     
-                    // 메이크업 팁이 있으면 표시
-                    if (window.makeupTips && window.makeupTips.length > 0) {
-                        console.log('5단계에서 메이크업 팁 표시 시작');
-                        displayMakeupTips();
-                    } else {
-                        console.log('5단계에서 메이크업 팁이 아직 생성되지 않았습니다.');
-                    }
                     
                     // 5단계로 이동할 때 "분석된 이미지들" 제목으로 스크롤
                     const step5Element = document.getElementById('step-5');
@@ -1144,41 +1207,6 @@ function showCurrentStep() {
         }
     });
     
-    // 6단계는 step-content 클래스 사용
-    if (currentStep === 6) {
-        const step6Element = document.getElementById('step-6');
-        if (step6Element) {
-            step6Element.classList.add('active');
-            console.log('6단계 (step-content) 활성화됨');
-            
-            // 6단계로 이동할 때 "메이크업 팁" 제목으로 스크롤
-            setTimeout(() => {
-                const makeupTipsTitle = step6Element.querySelector('h4');
-                if (makeupTipsTitle) {
-                    makeupTipsTitle.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'start' 
-                    });
-                    console.log('6단계 "메이크업 팁" 제목으로 스크롤 완료');
-                } else {
-                    console.log('메이크업 팁 제목을 찾을 수 없어 상단으로 스크롤');
-                    step6Element.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'start' 
-                    });
-                }
-            }, 100); // 약간의 지연을 두어 DOM 업데이트 후 스크롤
-        } else {
-            console.error('6단계 요소를 찾을 수 없습니다.');
-        }
-    } else {
-        // 6단계가 아닐 때는 6단계 요소 비활성화
-        const step6Element = document.getElementById('step-6');
-        if (step6Element) {
-            step6Element.classList.remove('active');
-            console.log('6단계 (step-content) 비활성화됨');
-        }
-    }
     
     console.log('showCurrentStep 함수 완료');
 }
@@ -1459,7 +1487,7 @@ async function startAnalysis() {
             const result = await response.json();
             
             if (result.success) {
-                // 6단계: 분석 완료 (100%)
+                // 5단계: 분석 완료 (100%)
                 progressFill.style.width = '100%';
                 updateProgressStatusWithRepeatingTyping('분석 완료!', 80);
                 await new Promise(resolve => setTimeout(resolve, 500));
@@ -1468,7 +1496,7 @@ async function startAnalysis() {
                 console.log('분석 결과 데이터:', result.analysis);
                 console.log('세션 ID:', result.sessionId);
                 
-                // 서버에서 보내는 구조: { analysis: { analysis: raw_analysis } }
+                // 분석 결과 저장
                 analysisResults = {
                     raw_analysis: result.analysis.analysis
                 };
@@ -1479,15 +1507,23 @@ async function startAnalysis() {
                     // 세션 ID를 세션 스토리지에 저장
                     sessionStorage.setItem('beautyAI_analysisSessionId', result.sessionId);
                     console.log('분석 세션 ID 저장됨:', result.sessionId);
-                    
-                    // WebSocket으로 진행 상황 모니터링 (폴링 제거)
-                    console.log('WebSocket으로 진행 상황 모니터링 시작');
                 }
                 
                 // 상태 저장
                 saveAppState();
                 
-                completeAnalysis();
+                // 분석 완료 후 5단계로 이동
+                console.log('AI 분석 완료! 5단계로 이동합니다.');
+                
+                // 5단계로 자동 이동
+                currentStep = 5;
+                updateProgressSteps();
+                showCurrentStep();
+                
+                // 분석 결과 표시
+                displayFullGPTResponse(analysisResults);
+                
+                console.log('5단계로 이동 완료');
             } else {
                 // AI 거부 응답인지 확인
                 if (result.error === 'ai_refusal') {
@@ -1522,95 +1558,6 @@ async function startAnalysis() {
     }
 }
 
-// 분석 완료
-async function completeAnalysis() {
-    console.log('completeAnalysis 함수 호출됨');
-    console.log('현재 analysisResults:', analysisResults);
-    
-    // 분석 결과가 없는 경우 처리
-    if (!analysisResults) {
-        console.error('분석 결과가 없습니다.');
-        showError('분석 결과를 가져올 수 없습니다.');
-        return;
-    }
-    
-    console.log('분석 완료 성공, 분석 결과를 화면에 표시');
-    
-    // 분석 결과를 화면에 표시
-    displayFullGPTResponse(analysisResults);
-    
-    // AI 분석 완료 후 자동으로 메이크업 팁 생성 시작
-    console.log('AI 분석 완료! 메이크업 팁 자동 생성 시작...');
-    
-    // 3단계에서 "메이크업 팁 생성 중..." 메시지 표시
-    const progressText = document.getElementById('analysis-progress-text');
-    if (progressText) {
-        updateProgressStatusWithRepeatingTyping('메이크업 팁 생성 중...', 80);
-    }
-    
-    // WebSocket을 통해 메이크업 팁 생성 요청
-    try {
-        console.log('WebSocket을 통해 메이크업 팁 생성 요청...');
-        
-        if (window.ws && window.ws.readyState === WebSocket.OPEN) {
-            // WebSocket으로 메이크업 팁 생성 요청
-            const message = {
-                type: 'request_makeup_tips',
-                analysisResult: analysisResults.raw_analysis
-            };
-            
-            window.ws.send(JSON.stringify(message));
-            console.log('WebSocket 메이크업 팁 생성 요청 전송 완료');
-                
-                // 진행률 텍스트 업데이트
-                if (progressText) {
-                updateProgressStatusWithRepeatingTyping('메이크업 팁 분석 중...', 80);
-                }
-            } else {
-            console.error('WebSocket 연결이 없습니다. 일반 API로 메이크업 팁 생성...');
-            
-            // WebSocket이 없으면 일반 API 사용
-            const result = await generateMakeupTipsOnly();
-            
-            if (result && result.success && result.makeupTips && result.makeupTips.length > 0) {
-                console.log('일반 API로 메이크업 팁 생성 완료!');
-                window.makeupTips = result.makeupTips;
-                saveAppState();
-                
-                // 4단계에서 5단계로 자동 이동
-                currentStep = 5;
-                updateProgressSteps();
-                showCurrentStep();
-                displayMakeupTips();
-                
-                if (progressText) {
-                    updateProgressStatusWithRepeatingTyping('메이크업 팁 생성 완료!', 100);
-                }
-            }
-        }
-        
-    } catch (error) {
-        console.error('메이크업 팁 생성 중 오류:', error);
-        
-        // 진행률 텍스트 요소 가져오기
-        const progressText = document.getElementById('analysis-progress-text');
-        
-        // 오류 발생 시 진행률 텍스트 업데이트
-        if (progressText) {
-            updateProgressStatusWithRepeatingTyping('메이크업 팁 생성 실패', 80);
-        }
-        
-        // 오류 발생 시 사용자에게 알림
-        alert('메이크업 팁 생성에 실패했습니다: ' + error.message);
-        
-        // 오류 발생 시에도 텍스트 숨김
-        setTimeout(() => {
-            if (progressText) {
-                progressText.style.display = 'none';
-            }
-        }, 3000); // 3초 후 텍스트 숨김
-    }
-}
 
 
 
@@ -1770,627 +1717,10 @@ function displayPoint() {
 
 
 
-// 메이크업 팁 가져오기 및 피드백 적용 결과 표시
-async function generateImprovedImage() {
-    console.log('메이크업 팁 생성 시작...');
-    console.log('analysisResults:', analysisResults);
-    
-    try {
-        // 원본 이미지를 최종 표시 영역에 복사 (정면 사진)
-        const finalOriginalImg = document.getElementById('final-original');
-        if (finalOriginalImg && uploadedImages.front && uploadedImages.front.dataUrl) {
-            finalOriginalImg.src = uploadedImages.front.dataUrl;
-            console.log('원본 이미지 복사 완료');
-        }
-        
-        // 기존 외모 분석 결과 확인
-        if (!analysisResults || !analysisResults.raw_analysis) {
-            throw new Error('외모 분석 결과가 없습니다. 먼저 얼굴 분석을 완료해주세요.');
-        }
-        
-        console.log('분석 결과 확인됨, 메이크업 팁 요청 시작...');
-        
-        // 메이크업 팁 API 호출
-        const response = await fetch(`${getApiBaseUrl()}/api/get-makeup-tips`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                analysisResult: analysisResults.raw_analysis
-            })
-        });
 
-        console.log('API 응답 상태:', response.status);
-        console.log('API 응답 헤더:', response.headers);
 
-        if (!response.ok) {
-            throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
-        }
 
-        const responseText = await response.text();
-        console.log('API 응답 텍스트:', responseText.substring(0, 200) + '...');
 
-        let result;
-        try {
-            result = JSON.parse(responseText);
-        } catch (parseError) {
-            console.error('JSON 파싱 오류:', parseError);
-            throw new Error('서버에서 잘못된 응답을 받았습니다: ' + responseText.substring(0, 100));
-        }
-        
-        if (result.success) {
-            console.log('메이크업 팁 생성 성공!');
-            console.log('메이크업 팁 내용:', result.makeupTips.substring(0, 200) + '...');
-            
-            // 메이크업 팁 저장
-            window.makeupTips = result.makeupTips;
-            
-            console.log('showFeedbackApplicationResult 호출 전');
-            // 피드백 적용 결과 페이지로 이동
-            showFeedbackApplicationResult();
-            console.log('showFeedbackApplicationResult 호출 후');
-        } else {
-            console.error('메이크업 팁 생성 실패:', result);
-            throw new Error(result.reason || '메이크업 팁을 가져올 수 없습니다.');
-        }
-        
-    } catch (error) {
-        console.error('메이크업 팁 가져오기 오류:', error);
-        
-        // 사용자에게 더 명확한 오류 메시지 표시
-        let errorMessage = '메이크업 팁을 가져오는 중 오류가 발생했습니다.\n\n';
-        
-        if (error.message.includes('서버 오류')) {
-            errorMessage += '서버 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.';
-        } else if (error.message.includes('외모 분석 결과가 없습니다')) {
-            errorMessage += '먼저 얼굴 분석을 완료해주세요.';
-        } else if (error.message.includes('JSON 파싱')) {
-            errorMessage += '서버 응답에 문제가 있습니다. 잠시 후 다시 시도해주세요.';
-        } else {
-            errorMessage += error.message;
-        }
-        
-        alert(errorMessage);
-        
-        // 오류 발생 시 4단계로 돌아가기
-        currentStep = 4;
-        updateProgressSteps();
-        showCurrentStep();
-    }
-}
-
-// 새로운 통합 함수: AI 분석과 메이크업 팁을 함께 처리
-async function generateAnalysisAndMakeupTips() {
-    console.log('=== generateAnalysisAndMakeupTips 함수 시작 ===');
-    
-    try {
-        // 1단계: AI 외모 분석 시작
-        console.log('1단계: AI 외모 분석 시작...');
-        await startAnalysis();
-        console.log('1단계: AI 외모 분석 완료');
-        
-        // 2단계: 메이크업 팁 생성
-        console.log('2단계: 메이크업 팁 생성 시작...');
-        
-        // 원본 이미지를 최종 표시 영역에 복사
-        const finalOriginalImg = document.getElementById('final-original');
-        if (finalOriginalImg && uploadedImage && uploadedImage.dataUrl) {
-            finalOriginalImg.src = uploadedImage.dataUrl;
-            console.log('원본 이미지 복사 완료');
-        }
-        
-        // 분석 결과 확인
-        console.log('분석 결과 확인:', analysisResults);
-        if (!analysisResults || !analysisResults.raw_analysis) {
-            throw new Error('외모 분석 결과가 없습니다.');
-        }
-        
-        console.log('메이크업 팁 API 호출 시작...');
-        // 메이크업 팁 API 호출
-        const response = await fetch(`${getApiBaseUrl()}/api/get-makeup-tips`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                analysisResult: analysisResults.raw_analysis
-            })
-        });
-
-        console.log('메이크업 팁 API 응답 상태:', response.status);
-
-        if (!response.ok) {
-            throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('메이크업 팁 API 응답:', result);
-        
-        if (result.success) {
-            console.log('메이크업 팁 생성 성공!');
-            console.log('메이크업 팁 내용:', result.makeupTips.substring(0, 200) + '...');
-            
-            // 메이크업 팁 저장
-            window.makeupTips = result.makeupTips;
-            console.log('window.makeupTips 저장 완료:', window.makeupTips);
-            
-            console.log('=== AI 분석과 메이크업 팁 모두 완료! ===');
-        } else {
-            throw new Error(result.reason || '메이크업 팁을 가져올 수 없습니다.');
-        }
-        
-    } catch (error) {
-        console.error('=== 통합 처리 오류 ===:', error);
-        
-        // 오류 발생 시 사용자에게 알림
-        alert('처리 중 오류가 발생했습니다: ' + error.message);
-        
-        // 오류 발생 시 3단계로 돌아가기
-        currentStep = 3;
-        updateProgressSteps();
-        showCurrentStep();
-    }
-}
-
-// 메이크업 팁만 생성하는 함수 (AI 분석 완료 후 사용)
-// 전역 변수로 중복 호출 방지 플래그 설정
-window.isGeneratingMakeupTips = window.isGeneratingMakeupTips || false;
-
-async function generateMakeupTipsOnly() {
-    // 중복 호출 방지
-    if (window.isGeneratingMakeupTips) {
-        console.log('=== 이미 메이크업 팁 생성 중입니다. 중복 호출 무시 ===');
-        return;
-    }
-    
-    window.isGeneratingMakeupTips = true; // 생성 시작 플래그 설정
-    console.log('=== generateMakeupTipsOnly 함수 시작 ===');
-    console.log('현재 시간:', new Date().toISOString());
-    
-
-    
-    try {
-        // 분석 결과 확인
-        console.log('분석 결과 확인:', analysisResults);
-        if (!analysisResults || !analysisResults.raw_analysis) {
-            throw new Error('외모 분석 결과가 없습니다.');
-        }
-        
-        console.log('분석 결과 내용 (처음 200자):', analysisResults.raw_analysis.substring(0, 200));
-        
-        console.log('메이크업 팁 API 호출 시작...');
-        console.log('API 엔드포인트:', `${getApiBaseUrl()}/api/get-makeup-tips`);
-        
-        // 메이크업 팁 API 호출 (타임아웃 설정)
-        console.log('=== fetch 요청 시작 ===');
-        
-        // AbortController를 사용한 타임아웃 설정 (10분)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 600000); // 10분(600초) 타임아웃
-        
-        try {
-            const response = await fetch(`${getApiBaseUrl()}/api/get-makeup-tips`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    analysisResult: analysisResults.raw_analysis,
-                    background: false,  // ✅ 기본값: false
-                    timestamp: Date.now()
-                }),
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId); // 타임아웃 취소
-
-            console.log('=== fetch 응답 받음 ===');
-            console.log('메이크업 팁 API 응답 상태:', response.status);
-            console.log('응답 헤더:', Object.fromEntries(response.headers.entries()));
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('API 오류 응답 내용:', errorText);
-                throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
-            }
-
-            console.log('=== JSON 파싱 시작 ===');
-            const result = await response.json();
-            console.log('=== JSON 파싱 완료 ===');
-            console.log('메이크업 팁 API 응답:', result);
-            console.log('result 타입:', typeof result);
-            console.log('result.success:', result.success);
-            console.log('result.makeupTips:', result.makeupTips);
-            
-            if (result.success) {
-                console.log('메이크업 팁 생성 성공!');
-                console.log('메이크업 팁 내용 (처음 200자):', result.makeupTips.substring(0, 200) + '...');
-                console.log('메이크업 팁 전체 길이:', result.makeupTips.length);
-                
-                // 메이크업 팁 저장
-                window.makeupTips = result.makeupTips;
-                console.log('window.makeupTips 저장 완료:', window.makeupTips);
-                console.log('window.makeupTips 타입:', typeof window.makeupTips);
-                console.log('window.makeupTips 길이:', window.makeupTips ? window.makeupTips.length : 'undefined');
-                
-                console.log('=== 메이크업 팁 생성 완료! ===');
-                
-                // 상태 저장
-                saveAppState();
-                
-                // 성공 시 플래그 리셋
-                window.isGeneratingMakeupTips = false;
-                
-
-                
-                // 성공 결과 반환
-                return {
-                    success: true,
-                    makeupTips: result.makeupTips,
-                    message: '메이크업 팁 생성 완료'
-                };
-            } else {
-                console.error('API 응답에서 success가 false:', result);
-                throw new Error(result.reason || '메이크업 팁을 가져올 수 없습니다.');
-            }
-            
-        } catch (fetchError) {
-            clearTimeout(timeoutId); // 타임아웃 정리
-            
-            // 네트워크 일시 중단 오류인 경우 백그라운드에서 계속 시도
-            if (fetchError.message.includes('Failed to fetch') || 
-                fetchError.message.includes('ERR_NETWORK_IO_SUSPENDED') ||
-                fetchError.name === 'TypeError') {
-                console.log('=== 네트워크 일시 중단 감지, 백그라운드에서 계속 시도 ===');
-                
-                // WebSocket으로 메이크업 팁 생성 상태 모니터링 (폴링 제거)
-                console.log('WebSocket으로 메이크업 팁 생성 상태 모니터링 시작');
-                console.log('WebSocket으로 메이크업 팁 생성 상태 모니터링 완료');
-                
-                // 백그라운드 처리 시작 후 백그라운드 상태로 반환
-                return {
-                    success: true,
-                    makeupTips: null,
-                    message: '백그라운드에서 메이크업 팁 생성 중...',
-                    background: true,
-                    status: 'background_processing'
-                };
-            }
-            
-            // 기타 모든 오류도 백그라운드 처리로 전환
-            console.log('=== 기타 오류 감지, 백그라운드에서 계속 시도 ===');
-            console.log('오류 타입:', fetchError.constructor.name);
-            console.log('오류 메시지:', fetchError.message);
-            
-                            // WebSocket으로 메이크업 팁 생성 상태 모니터링 (폴링 제거)
-                console.log('WebSocket으로 메이크업 팁 생성 상태 모니터링 시작');
-                console.log('WebSocket으로 메이크업 팁 생성 상태 모니터링 완료');
-            
-            // 백그라운드 처리 시작 후 성공으로 반환하여 오류 처리 방지
-            return {
-                success: true,
-                makeupTips: null,
-                message: '백그라운드에서 메이크업 팁 생성 중...',
-                background: true
-            };
-            
-            if (fetchError.name === 'AbortError') {
-                console.error('=== 메이크업 팁 생성 타임아웃 (10분 초과) ===');
-                throw new Error('메이크업 팁 생성 시간이 10분을 초과했습니다. 다시 시도해주세요.');
-            }
-            
-            console.error('=== 메이크업 팁 생성 오류 ===:', fetchError);
-            console.error('오류 스택:', fetchError.stack);
-            
-            // 오류 발생 시 플래그 리셋
-            window.isGeneratingMakeupTips = false;
-            
-            // 오류를 상위로 전파하여 nextStep에서 처리
-            throw fetchError;
-        }
-        
-    } catch (error) {
-        console.error('=== 메이크업 팁 생성 최종 오류 ===:', error);
-        console.error('오류 스택:', error.stack);
-        
-        // 오류 발생 시 플래그 리셋
-        window.isGeneratingMakeupTips = false;
-        
-        // 오류를 상위로 전파
-        throw error;
-    }
-}
-
-// 기존 메이크업 팁 생성 함수 (별도 사용을 위해 유지)
-async function generateMakeupTips() {
-    console.log('generateMakeupTips 함수 시작');
-    
-    try {
-        // 3장 사진을 모두 최종 표시 영역에 복사
-        if (uploadedImages.front && uploadedImages.front.dataUrl) {
-            const finalOriginalImgFront = document.getElementById('final-original-front');
-            if (finalOriginalImgFront) {
-                finalOriginalImgFront.src = uploadedImages.front.dataUrl;
-                console.log('정면 이미지 복사 완료');
-            }
-        }
-        if (uploadedImages['45'] && uploadedImages['45'].dataUrl) {
-            const finalOriginalImg45 = document.getElementById('final-original-45');
-            if (finalOriginalImg45) {
-                finalOriginalImg45.src = uploadedImages['45'].dataUrl;
-                console.log('45도 측면 이미지 복사 완료');
-            }
-        }
-        if (uploadedImages['90'] && uploadedImages['90'].dataUrl) {
-            const finalOriginalImg90 = document.getElementById('final-original-90');
-            if (finalOriginalImg90) {
-                finalOriginalImg90.src = uploadedImages['90'].dataUrl;
-                console.log('90도 측면 이미지 복사 완료');
-            }
-        }
-        
-        // 기존 외모 분석 결과 확인
-        if (!analysisResults || !analysisResults.raw_analysis) {
-            throw new Error('외모 분석 결과가 없습니다. 먼저 얼굴 분석을 완료해주세요.');
-        }
-        
-        console.log('분석 결과 확인됨, 메이크업 팁 요청 시작...');
-        
-        // 메이크업 팁 API 호출 (3분 타임아웃 + 재시도 로직)
-        let retryCount = 0;
-        const maxRetries = 3;
-        const timeoutDuration = 180000; // 3분(180초) 타임아웃
-        
-        while (retryCount < maxRetries) {
-            try {
-                console.log(`=== 메이크업 팁 생성 시도 ${retryCount + 1}/${maxRetries} ===`);
-                
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
-                
-                const response = await fetch(`${getApiBaseUrl()}/api/get-makeup-tips`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        analysisResult: analysisResults.raw_analysis
-                    }),
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId); // 타임아웃 취소
-
-                console.log('API 응답 상태:', response.status);
-
-                if (!response.ok) {
-                    throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
-                }
-
-                const result = await response.json();
-                
-                if (result.success) {
-                    console.log('메이크업 팁 생성 성공!');
-                    console.log('메이크업 팁 내용:', result.makeupTips.substring(0, 200) + '...');
-                    
-                    // 메이크업 팁 저장
-                    window.makeupTips = result.makeupTips;
-                    
-                    // 메이크업 팁 표시
-                    displayMakeupTips();
-                    console.log('메이크업 팁 표시 완료');
-                    
-                    // 성공 시 루프 종료
-                    break;
-                } else {
-                    throw new Error(result.reason || '메이크업 팁을 가져올 수 없습니다.');
-                }
-                
-            } catch (fetchError) {
-                clearTimeout(timeoutId); // 타임아웃 정리
-                
-                if (fetchError.name === 'AbortError') {
-                    console.error(`=== 메이크업 팁 생성 타임아웃 (${timeoutDuration/1000}초 초과) ===`);
-                    if (retryCount < maxRetries - 1) {
-                        console.log(`${retryCount + 1}번째 시도 실패, 재시도 중...`);
-                        retryCount++;
-                        await new Promise(resolve => setTimeout(resolve, 2000)); // 2초 대기 후 재시도
-                        continue;
-                    } else {
-                        throw new Error(`메이크업 팁 생성 시간이 ${timeoutDuration/1000}초를 초과했습니다. 다시 시도해주세요.`);
-                    }
-                }
-                
-                // 네트워크 오류인 경우 재시도
-                if (fetchError.message.includes('Failed to fetch') || fetchError.message.includes('ERR_NETWORK_IO_SUSPENDED')) {
-                    console.error(`=== 네트워크 오류 발생 (${retryCount + 1}/${maxRetries}) ===`);
-                    if (retryCount < maxRetries - 1) {
-                        console.log('네트워크 오류로 재시도 중...');
-                        retryCount++;
-                        await new Promise(resolve => setTimeout(resolve, 3000)); // 3초 대기 후 재시도
-                        continue;
-                    } else {
-                        throw new Error('네트워크 연결에 실패했습니다. 인터넷 연결을 확인하고 다시 시도해주세요.');
-                    }
-                }
-                
-                // 기타 오류는 즉시 던지기
-                throw fetchError;
-            }
-        }
-        
-    } catch (error) {
-        console.error('메이크업 팁 가져오기 오류:', error);
-        
-        // 오류 메시지를 더 친화적으로 표시
-        let userMessage = '메이크업 팁을 가져오는 중 오류가 발생했습니다.';
-        
-        if (error.message.includes('타임아웃')) {
-            userMessage = '메이크업 팁 생성이 시간 초과되었습니다. 다시 시도해주세요.';
-        } else if (error.message.includes('네트워크')) {
-            userMessage = '네트워크 연결에 문제가 있습니다. 인터넷 연결을 확인하고 다시 시도해주세요.';
-        } else if (error.message.includes('서버 오류')) {
-            userMessage = '서버에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.';
-        }
-        
-        // 사용자에게 오류 안내 및 재시도 옵션 제공
-        const shouldRetry = confirm(`${userMessage}\n\n재시도하시겠습니까?`);
-        
-        if (shouldRetry) {
-            console.log('사용자가 재시도를 선택했습니다.');
-            // 4단계로 돌아가서 다시 시도할 수 있도록
-            currentStep = 4;
-            updateProgressSteps();
-            showCurrentStep();
-        } else {
-            // 사용자가 재시도를 원하지 않으면 4단계에 머무름
-            console.log('사용자가 재시도를 선택하지 않았습니다. 4단계에 머무릅니다.');
-            
-            // 메이크업 팁 생성 상태를 확인하고 안내
-            const progressText = document.getElementById('analysis-progress-text');
-            if (progressText) {
-                progressText.style.display = 'block';
-                if (window.makeupTips && window.makeupTips.length > 0) {
-                    updateProgressStatusWithRepeatingTyping('메이크업 팁 생성 완료! 다음 단계로 진행할 수 있습니다.', 80);
-                } else {
-                    updateProgressStatusWithRepeatingTyping('메이크업 팁 생성 중...', 80);
-                }
-            }
-        }
-    }
-}
-
-// 피드백 적용 결과 표시
-function showFeedbackApplicationResult() {
-    console.log('showFeedbackApplicationResult 함수 시작');
-    console.log('현재 단계:', currentStep);
-    
-    // 5단계로 이동 (메이크업 팁 결과 표시)
-    currentStep = 5;
-    console.log('단계를 5로 변경:', currentStep);
-    
-    updateProgressSteps();
-    console.log('진행 단계 업데이트 완료');
-    
-    showCurrentStep();
-    console.log('현재 단계 표시 완료');
-    
-    // 메이크업 팁 표시
-    displayMakeupTips();
-    console.log('showFeedbackApplicationResult 함수 완료');
-}
-
-// 메이크업 팁을 6단계 구조에 맞게 표시
-function displayMakeupTips() {
-    console.log('=== displayMakeupTips 함수 시작 ===');
-    console.log('현재 시간:', new Date().toISOString());
-    
-    // 1. 6단계 이미지들 표시
-    if (uploadedImages.front && uploadedImages.front.dataUrl) {
-        const step6FrontImg = document.getElementById('step6-uploaded-image-front');
-        if (step6FrontImg) {
-            step6FrontImg.src = uploadedImages.front.dataUrl;
-            console.log('6단계 정면 이미지 표시 완료');
-        }
-    }
-    if (uploadedImages['45'] && uploadedImages['45'].dataUrl) {
-        const step645Img = document.getElementById('step6-uploaded-image-45');
-        if (step645Img) {
-            step645Img.src = uploadedImages['45'].dataUrl;
-            console.log('6단계 45도 측면 이미지 표시 완료');
-        }
-    }
-    if (uploadedImages['90'] && uploadedImages['90'].dataUrl) {
-        const step690Img = document.getElementById('step6-uploaded-image-90');
-        if (step690Img) {
-            step690Img.src = uploadedImages['90'].dataUrl;
-            console.log('6단계 90도 측면 이미지 표시 완료');
-        }
-    }
-    
-    // 2. 메이크업 팁 표시
-    console.log('=== 메이크업 팁 상태 확인 ===');
-    console.log('window.makeupTips:', window.makeupTips);
-    console.log('window.makeupTips 타입:', typeof window.makeupTips);
-    console.log('window.makeupTips 길이:', window.makeupTips ? window.makeupTips.length : 'undefined');
-    
-    if (!window.makeupTips) {
-        console.error('=== 메이크업 팁이 없습니다! ===');
-        console.error('현재 전역 변수 상태:');
-        console.error('- window.makeupTips:', window.makeupTips);
-        console.error('- analysisResults:', analysisResults);
-        console.error('- uploadedImage:', uploadedImage);
-        console.error('메이크업 팁 생성 과정을 확인해주세요.');
-        
-        // 메이크업 팁이 없는 경우 적절한 안내 메시지 표시
-        const makeupTipsContent = document.getElementById('makeup-tips-content');
-        if (makeupTipsContent) {
-            makeupTipsContent.innerHTML = `
-                <div class="loading-message">
-                    <div class="loading-title">
-                        <i class="fas fa-clock"></i> 메이크업 팁 생성 중...
-                    </div>
-                    <div class="loading-description">
-                        AI가 분석 결과를 바탕으로 맞춤형 메이크업 팁을 생성하고 있습니다.<br>
-                        3분에서 5분간 정밀한 검사가 진행됩니다.
-                    </div>
-                    <div class="loading-status">
-                        <div class="status-title">현재 상태:</div>
-                        <div class="status-content">
-                            • 외모 분석 완료 ✓<br>
-                            • 메이크업 팁 생성 중... ⏳
-                        </div>
-                    </div>
-                    <div class="loading-info">
-                        <i class="fas fa-info-circle"></i> 
-                        메이크업 팁 생성이 완료되면 자동으로 표시됩니다.
-                    </div>
-                </div>
-            `;
-        }
-        
-        // WebSocket으로 메이크업 팁 생성 상태 모니터링 (폴링 제거)
-        console.log('WebSocket으로 메이크업 팁 생성 상태 모니터링 중...');
-        
-        return;
-    }
-
-    console.log('메이크업 팁 내용:', window.makeupTips.substring(0, 200) + '...');
-
-    const makeupTipsContent = document.getElementById('makeup-tips-content');
-    if (!makeupTipsContent) {
-        console.error('makeup-tips-content 요소를 찾을 수 없습니다.');
-        return;
-    }
-
-    console.log('makeup-tips-content 요소 찾음');
-
-    // 새로운 구조화된 메이크업 팁 표시
-    console.log('=== formatMakeupTips 호출 전 ===');
-    console.log('입력 텍스트 샘플:', window.makeupTips.substring(0, 500));
-    
-    const formattedTips = formatMakeupTips(window.makeupTips);
-    
-    console.log('=== formatMakeupTips 결과 ===');
-    console.log('생성된 HTML 샘플:', formattedTips.substring(0, 500));
-    
-    // 중복 컨테이너 제거 - 기존 컨테이너에 직접 내용 삽입 (제목 제거)
-    const makeupTipsHtml = formattedTips;
-    
-    makeupTipsContent.innerHTML = makeupTipsHtml;
-    
-    console.log('메이크업 팁 표시 완료');
-    
-    // 메이크업 팁 포인트 표시 (선택사항)
-    const makeupPointDisplay = document.getElementById('makeup-point-display');
-    if (makeupPointDisplay) {
-        makeupPointDisplay.innerHTML = `
-            <div class="point-value">💄</div>
-            <div class="point-label">메이크업 팁</div>
-        `;
-    }
-}
 
 // 공유 링크 설정
 function setupShareLink() {
@@ -2488,88 +1818,6 @@ async function saveAnalysisResult() {
     }
 }
 
-// 메이크업 팁을 이미지로 저장
-async function saveMakeupTips() {
-    try {
-        console.log('메이크업 팁 이미지 저장 시작...');
-        
-        // 메이크업 팁 텍스트 길이 계산
-        const makeupTipsText = window.makeupTips || '메이크업 팁 생성 중...';
-        
-        // 개선된 높이 계산 함수 사용
-        const calculatedHeight = calculateOptimalHeight(makeupTipsText, 500, 4000);
-        
-        console.log('메이크업 팁 높이 계산 완료:', calculatedHeight);
-        
-        // 5단계 내용을 캡처할 요소 생성
-        const captureElement = document.createElement('div');
-        captureElement.style.cssText = `
-            position: fixed;
-            top: -9999px;
-            left: -9999px;
-            width: 800px;
-            height: ${calculatedHeight}px;
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            border: 2px solid #D45858;
-            font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-            color: #333;
-            overflow: hidden;
-        `;
-        
-        // 메이크업 팁 내용 구성
-        const makeupTipsContent = `
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="font-size: 2.5em; margin: 0;">AI 메이크업 실장의 맞춤형 조언</h1>
-            </div>
-            
-            <div style="margin-bottom: 30px; text-align: center;">
-                <img src="${uploadedImage?.dataUrl || ''}" style="max-width: 300px; max-height: 300px; border-radius: 10px; border: 2px solid #D45858;" alt="분석된 이미지">
-                <p style="margin-top: 15px; color: #666; font-size: 1.1em;">분석된 이미지</p>
-            </div>
-            
-            <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; border: 1px solid #e9ecef;">
-                <h3 style="margin-bottom: 15px;">맞춤형 메이크업 조언</h3>
-                <div style="line-height: 1.8; font-size: 1.1em; white-space: pre-line; word-wrap: break-word;">
-                    ${makeupTipsText}
-                </div>
-            </div>
-            
-            <div style="text-align: center; margin-top: 30px; color: #666; font-size: 0.9em;">
-                Better Me - AI 메이크업 팁
-            </div>
-        `;
-        
-        captureElement.innerHTML = makeupTipsContent;
-        document.body.appendChild(captureElement);
-        
-        // html2canvas로 이미지 생성
-        const canvas = await html2canvas(captureElement, {
-            width: 800,
-            height: calculatedHeight,
-            backgroundColor: 'white',
-            scale: 2,
-            useCORS: true,
-            allowTaint: true
-        });
-        
-        // 이미지 다운로드
-        const link = document.createElement('a');
-        link.download = `AI_메이크업팁_${new Date().toISOString().slice(0, 10)}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-        
-        // 임시 요소 제거
-        document.body.removeChild(captureElement);
-        
-        console.log('메이크업 팁 이미지 저장 완료');
-        
-    } catch (error) {
-        console.error('메이크업 팁 이미지 저장 실패:', error);
-        alert('이미지 저장에 실패했습니다: ' + error.message);
-    }
-}
 
 // 반복 타이핑 효과 함수
 function startRepeatingTypeWriter(element, text, speed = 80) {
@@ -2659,7 +1907,7 @@ async function saveAnalysisResultToServer(isAutoSave = false) {
     try {
         console.log('분석 결과 서버 저장 시작');
         
-        if (!analysisResults || !window.makeupTips) {
+        if (!analysisResults) {
             console.log('저장할 분석 결과가 없습니다.');
             return;
         }
@@ -2683,7 +1931,6 @@ async function saveAnalysisResultToServer(isAutoSave = false) {
             },
             body: JSON.stringify({
                 analysisResult: analysisResults.raw_analysis,
-                makeupTips: window.makeupTips,
                 uploadedImages: imageDataForStorage
             })
         });
@@ -2715,153 +1962,6 @@ async function saveAnalysisResultToServer(isAutoSave = false) {
 }
 
 // ChatGPT 응답을 5단계와 동일한 구조로 변환
-function formatMakeupTips(text) {
-    if (!text) return '';
-    
-    console.log('=== formatMakeupTips 함수 시작 ===');
-    console.log('입력 텍스트:', text.substring(0, 200) + '...');
-    
-    // 텍스트를 줄 단위로 분할
-    const lines = text.split('\n').filter(line => line.trim());
-    console.log('분할된 줄 수:', lines.length);
-    
-    let html = '';
-    let currentSection = '';
-    let sectionContent = '';
-    
-    lines.forEach((line, index) => {
-        const trimmedLine = line.trim();
-        console.log(`줄 ${index + 1}:`, trimmedLine);
-        
-        // 숫자로 시작하는 제목 (1. 2. 3. 등) - 5단계와 동일한 main-title 구조
-        if (/^\d+\./.test(trimmedLine)) {
-            console.log('제목 발견:', trimmedLine);
-            
-            // 이전 섹션 닫기
-            if (currentSection) {
-                html += `<div class="section">
-                    <div class="main-title">${currentSection}</div>
-                    <div class="content-text">${sectionContent}</div>
-                    <div class="divider"></div>
-                </div>`;
-                sectionContent = '';
-            }
-            
-            // 제목을 5단계와 동일한 구조로 구성
-            const sectionNumber = trimmedLine.match(/^(\d+)\./)[1];
-            const iconMap = {
-                '1': '👁️', '2': '👃', '3': '👄', '4': '✨', '5': '🎨', '6': '💉', '7': '📺'
-            };
-            const icon = iconMap[sectionNumber] || '📋';
-            const titleText = trimmedLine.replace(/^\d+\.\s*/, '');
-            currentSection = `${icon} ${sectionNumber}. ${titleText}`;
-            
-            console.log('새 섹션 시작:', currentSection);
-        }
-        // 링크가 포함된 텍스트 (콜론 기준으로 분리하여 하이퍼링크 생성) - 먼저 처리
-        else if (trimmedLine.includes('http')) {
-            console.log('링크 포함 텍스트 발견:', trimmedLine);
-            
-            // 콜론(:)을 기준으로 분리
-            const colonIndex = trimmedLine.indexOf(':');
-            if (colonIndex !== -1) {
-                const titleText = trimmedLine.substring(0, colonIndex).trim();
-                const descriptionAndUrl = trimmedLine.substring(colonIndex + 1).trim();
-                
-                // URL 추출 (watch?v= 또는 results?search_query= 패턴 모두 지원)
-                const urlMatch = descriptionAndUrl.match(/((?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:watch\?v=|results\?search_query=)[^\s\)\]\}\.,;:!?]+)/);
-                if (urlMatch) {
-                    let url = urlMatch[0];
-                    // https://가 없으면 추가
-                    if (!url.startsWith('http')) {
-                        url = 'https://' + url;
-                    }
-                    const descriptionText = descriptionAndUrl.replace(urlMatch[0], '').trim();
-                    
-                    console.log('제목 텍스트:', titleText);
-                    console.log('설명 텍스트:', descriptionText);
-                    console.log('원본 URL:', url);
-                    
-                    // URL이 잘못되었을 가능성을 고려하여 YouTube 검색 링크로 대체
-                    // 제목과 설명을 조합하여 검색어 생성
-                    const searchQuery = encodeURIComponent(`${titleText} ${descriptionText} 메이크업`);
-                    const fallbackUrl = `https://www.youtube.com/results?search_query=${searchQuery}`;
-                    
-                    console.log('대체 URL (YouTube 검색):', fallbackUrl);
-                    
-                    // 제목은 그대로 두고 설명 부분만 하이퍼링크로 만들고 URL은 제거
-                    const formattedLine = `${titleText}: <a href="${fallbackUrl}" target="_blank">${descriptionText}</a>`;
-                    sectionContent += `<div class="content-line">${formattedLine}</div>`;
-            } else {
-                    // URL이 없는 경우 YouTube 검색 링크 생성
-                    const descriptionText = descriptionAndUrl.trim();
-                    const searchQuery = encodeURIComponent(`${titleText} ${descriptionText} 메이크업`);
-                    const fallbackUrl = `https://www.youtube.com/results?search_query=${searchQuery}`;
-                    
-                    console.log('URL 없음 - YouTube 검색 링크 생성:', fallbackUrl);
-                    
-                    // 제목은 그대로 두고 설명 부분만 하이퍼링크로 만들기
-                    const formattedLine = `${titleText}: <a href="${fallbackUrl}" target="_blank">${descriptionText}</a>`;
-                    sectionContent += `<div class="content-line">${formattedLine}</div>`;
-                }
-            } else {
-                // 콜론이 없는 경우 기존 방식으로 처리
-            const urlRegex = /(https?:\/\/[^\s\)\]\}\.,;:!?]+)/g;
-            let lastIndex = 0;
-            let result;
-            let formattedLine = '';
-            while ((result = urlRegex.exec(trimmedLine)) !== null) {
-                const url = result[0];
-                const urlIndex = result.index;
-                formattedLine += trimmedLine.substring(lastIndex, urlIndex);
-                formattedLine += `<a href="${url}" target="_blank">${url}</a>`;
-                lastIndex = urlIndex + url.length;
-            }
-            formattedLine += trimmedLine.substring(lastIndex);
-                sectionContent += `<div class="content-line">${formattedLine}</div>`;
-            }
-        }
-        // 하이픈(-)으로 시작하는 소제목들
-        else if (trimmedLine.startsWith('-')) {
-            console.log('소제목 발견:', trimmedLine);
-            
-            // 강조 텍스트 처리
-            const formattedLine = trimmedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            sectionContent += `<div class="subtitle">${formattedLine}</div>`;
-        }
-        // 들여쓰기된 세부 내용들 (앞에 공백이 있는 줄들)
-        else if (trimmedLine.startsWith('  -') || trimmedLine.startsWith('  •')) {
-            console.log('세부 내용 발견:', trimmedLine);
-            
-            // 강조 텍스트 처리
-            const formattedLine = trimmedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            sectionContent += `<div class="content-line">${formattedLine}</div>`;
-        }
-        // 빈 줄이 아닌 일반 텍스트
-        else if (trimmedLine.length > 0) {
-            console.log('일반 텍스트 발견:', trimmedLine);
-            
-            // 강조 텍스트 처리
-            const formattedLine = trimmedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            sectionContent += `<div class="content-line">${formattedLine}</div>`;
-        }
-        
-        // 마지막 줄인 경우 마지막 섹션 닫기
-        if (index === lines.length - 1 && currentSection) {
-            html += `<div class="section">
-                <div class="main-title">${currentSection}</div>
-                <div class="content-text">${sectionContent}</div>
-                <div class="divider"></div>
-            </div>`;
-        }
-    });
-    
-    console.log('=== 최종 HTML 결과 ===');
-    console.log('생성된 HTML 길이:', html.length);
-    console.log('HTML 샘플:', html.substring(0, 500) + '...');
-    
-    return html;
-}
 
 // 분석 결과를 Figma 디자인에 맞게 구조화된 HTML로 변환
 function formatAnalysisResult(text) {
@@ -2941,35 +2041,6 @@ function setupVisibilityChangeDetection() {
                 }
             }
             
-            // 백그라운드 메이크업 팁 생성 상태 확인
-            if (window.backgroundMakeupTipsGeneration) {
-                console.log('백그라운드 메이크업 팁 생성 상태 확인');
-                
-                // 백그라운드에서 성공했는지 확인
-                if (window.makeupTips) {
-                    console.log('백그라운드에서 메이크업 팁 생성 완료!');
-                    window.backgroundMakeupTipsGeneration = false;
-                    window.backgroundMakeupTipsStartTime = null;
-                    
-                    // showSuccess('메이크업 팁이 생성되었습니다!'); // 제거됨
-                    
-                                            // 즉시 5단계로 진행 (3초 대기 없음)
-                        console.log('페이지 가시성 변경 시 백그라운드 성공 확인 후 즉시 5단계로 진행');
-                        currentStep = 5;
-                        updateProgressSteps();
-                        showCurrentStep();
-                        displayMakeupTips();
-                        saveAppState();
-                        
-                        // 5단계로 이동 완료 알림 (제거됨)
-                        // setTimeout(() => {
-                        //     showSuccess('5단계로 이동했습니다!');
-                        // }, 1000);
-                } else {
-                    console.log('백그라운드에서 메이크업 팁 생성 중...');
-                    showSuccess('백그라운드에서 메이크업 팁 생성을 계속 시도하고 있습니다...');
-                }
-            }
         }
     });
 }
@@ -2991,25 +2062,16 @@ async function checkAnalysisProgress(sessionId) {
             console.log('현재 분석 진행 상태:', progress);
             
             if (progress.status === 'completed') {
-                // 메이크업 팁까지 완료되었는지 확인
-                if (window.makeupTips && window.makeupTips.length > 0) {
-                    // AI 분석 및 메이크업 팁이 모두 완료된 경우 5단계로 자동 이동
-                    console.log('AI 분석 및 메이크업 팁 완료되어 5단계로 자동 이동');
+                // AI 분석이 완료된 경우 5단계로 자동 이동
+                console.log('AI 분석 완료되어 5단계로 자동 이동');
                 currentStep = 5;
                 updateProgressSteps();
                 showCurrentStep();
-                displayMakeupTips();
                 
                 // 세션 ID 제거
                 sessionStorage.removeItem('beautyAI_analysisSessionId');
                 
-                    showSuccess('AI 분석 및 메이크업 팁 생성이 완료되었습니다!');
-                } else {
-                    // AI 얼굴 분석만 완료, 메이크업 팁 생성 대기 중
-                    console.log('AI 얼굴 분석만 완료, 메이크업 팁 생성 대기 중...');
-                    showSuccess('AI 얼굴 분석이 완료되었습니다! 메이크업 팁을 생성하고 있습니다...');
-                    // 4단계에 머무름 (currentStep = 4 유지)
-                }
+                    showSuccess('AI 분석이 완료되었습니다!');
                 
             } else if (progress.status === 'failed') {
                 // 분석이 실패한 경우 오류 메시지 표시
@@ -3129,7 +2191,6 @@ function restartProcess() {
     uploadedImage = null;
     analysisResults = null;
     feedbackData = null;
-    window.makeupTips = null;
     
     // 모든 단계 패널 숨기기
     document.querySelectorAll('.step-panel').forEach(panel => {
@@ -3219,53 +2280,6 @@ function downloadImage(canvas, filename) {
     console.log('이미지 다운로드 완료:', filename);
 }
 
-// 6단계만 저장하는 함수
-async function saveAsImages() {
-    console.log('=== 6단계 이미지 저장 시작 ===');
-    
-    try {
-        // 로딩 표시
-        showLoadingModal('이미지 생성 중...');
-        
-        const dateString = new Date().toISOString().split('T')[0];
-        
-
-        
-        // 6단계 캡처
-        console.log('6단계 캡처 시작...');
-        const step6Element = document.getElementById('step-6');
-        if (step6Element) {
-            const canvas6 = await html2canvas(step6Element, {
-                scale: 2, // 고해상도로 설정
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                logging: false,
-                removeContainer: true,
-                imageTimeout: 0,
-                foreignObjectRendering: false
-            });
-            
-            console.log('6단계 캔버스 크기:', canvas6.width, 'x', canvas6.height);
-            
-            // 6단계 이미지 다운로드
-            const fileName6 = `beauty-ai-step6-${dateString}.png`;
-            downloadImage(canvas6, fileName6);
-            console.log('6단계 이미지 저장 완료');
-        }
-        
-        // 로딩 숨김
-        hideLoadingModal();
-        
-        // 성공 메시지
-        showSuccess('6단계 이미지가 성공적으로 저장되었습니다!');
-        
-    } catch (error) {
-        console.error('이미지 저장 중 오류:', error);
-        hideLoadingModal();
-        showError('6단계 이미지 저장 중 오류가 발생했습니다. 다시 시도해주세요.');
-    }
-}
 
 // 5단계만 저장하는 함수
 async function saveStep5AsImage() {

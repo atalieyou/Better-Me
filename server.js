@@ -7,7 +7,7 @@ const http = require('http');
 const WebSocket = require('ws');
 require('dotenv').config();
 
-const { analyzeFaceWithChatGPT5, getMakeupTips } = require('./services/gpt4oService');
+const { analyzeFaceWithChatGPT5 } = require('./services/gpt4oService');
 
 const app = express();
 const server = http.createServer(app);
@@ -35,36 +35,6 @@ wss.on('connection', (ws, req) => {
                     console.log('세션 등록:', sessionId);
                     break;
                     
-                case 'request_makeup_tips':
-                    if (sessionId) {
-                        console.log('메이크업 팁 요청:', sessionId);
-                        try {
-                            const makeupTipsResult = await getMakeupTips(message.analysisResult);
-                            
-                            if (makeupTipsResult.error === 'ai_refusal') {
-                                ws.send(JSON.stringify({
-                                    type: 'makeup_tips_error',
-                                    error: 'ai_refusal',
-                                    reason: makeupTipsResult.reason
-                                }));
-                            } else {
-                                console.log('WebSocket으로 메이크업 팁 전송 시작...');
-                                ws.send(JSON.stringify({
-                                    type: 'makeup_tips_ready',
-                                    tips: makeupTipsResult.raw_makeup_tips
-                                }));
-                                console.log('WebSocket 메이크업 팁 전송 완료');
-                            }
-                        } catch (error) {
-                            console.error('메이크업 팁 생성 오류:', error);
-                            ws.send(JSON.stringify({
-                                type: 'makeup_tips_error',
-                                error: 'generation_failed',
-                                reason: error.message
-                            }));
-                        }
-                    }
-                    break;
                     
                 default:
                     console.log('알 수 없는 메시지 타입:', message.type);
@@ -107,6 +77,34 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // 정적 파일 서빙 (프론트엔드)
 app.use(express.static(__dirname));
+
+// 카카오페이 콜백 라우트
+app.get('/kakao-pay/success', (req, res) => {
+    console.log('카카오페이 결제 성공 콜백:', req.query);
+    
+    // 결제 성공 처리
+    const { pg_token, partner_order_id, partner_user_id } = req.query;
+    
+    if (pg_token) {
+        // 결제 승인 처리 (실제 구현 시 카카오페이 API 호출)
+        console.log('결제 승인 처리:', { pg_token, partner_order_id, partner_user_id });
+        
+        // 결제 완료 페이지로 리다이렉트
+        res.redirect('/?payment=success&step=3');
+    } else {
+        res.redirect('/?payment=error');
+    }
+});
+
+app.get('/kakao-pay/cancel', (req, res) => {
+    console.log('카카오페이 결제 취소 콜백:', req.query);
+    res.redirect('/?payment=cancel&step=2');
+});
+
+app.get('/kakao-pay/fail', (req, res) => {
+    console.log('카카오페이 결제 실패 콜백:', req.query);
+    res.redirect('/?payment=fail&step=2');
+});
 
 // 업로드 디렉토리 생성
 const uploadDir = process.env.UPLOAD_PATH || './uploads';
@@ -269,7 +267,7 @@ app.post('/api/analyze-face', upload.fields([
 // 분석 결과 저장 API
 app.post('/api/save-analysis-result', async (req, res) => {
     try {
-        const { analysisResult, makeupTips, uploadedImages } = req.body;
+        const { analysisResult, uploadedImages } = req.body;
         
         if (!analysisResult) {
             return res.status(400).json({ 
@@ -284,7 +282,6 @@ app.post('/api/save-analysis-result', async (req, res) => {
         analysisResults.set(resultId, {
             id: resultId,
             analysisResult,
-            makeupTips,
             uploadedImages,
             createdAt: new Date().toISOString(),
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7일 후 만료
@@ -429,164 +426,7 @@ app.get('/api/get-analysis-result/:resultId', async (req, res) => {
     }
 });
 
-// 메이크업 팁 API - 백그라운드 처리 지원
-app.post('/api/get-makeup-tips', async (req, res) => {
-    try {
-        const { analysisResult, background, timestamp } = req.body;
-        
-        if (!analysisResult) {
-            return res.status(400).json({ 
-                success: false, 
-                reason: '외모 분석 결과가 필요합니다.' 
-            });
-        }
 
-        console.log('메이크업 팁 요청 받음');
-        console.log('백그라운드 처리:', background);
-        console.log('요청 시간:', timestamp);
-
-        // 백그라운드 처리인 경우 우선순위 높임
-        if (background) {
-            console.log('=== 백그라운드 메이크업 팁 생성 시작 ===');
-            console.log('요청 시간:', new Date(timestamp).toISOString());
-            console.log('분석 결과 길이:', analysisResult.length);
-            console.log('분석 결과 샘플:', analysisResult.substring(0, 200) + '...');
-            
-            // 백그라운드에서 비동기로 처리
-            getMakeupTips(analysisResult)
-                .then(makeupTipsResult => {
-                    console.log('=== 백그라운드 메이크업 팁 생성 완료 ===');
-                    console.log('결과 타입:', typeof makeupTipsResult);
-                    console.log('결과 구조:', Object.keys(makeupTipsResult));
-                    
-                    if (makeupTipsResult.raw_makeup_tips) {
-                        console.log('메이크업 팁 길이:', makeupTipsResult.raw_makeup_tips.length);
-                        console.log('메이크업 팁 샘플:', makeupTipsResult.raw_makeup_tips.substring(0, 200) + '...');
-                    } else {
-                        console.log('메이크업 팁 결과가 없음');
-                    }
-                    
-                    // 결과를 메모리에 저장 (클라이언트가 나중에 확인할 수 있도록)
-                    if (!global.backgroundMakeupTipsResults) {
-                        global.backgroundMakeupTipsResults = new Map();
-                        console.log('백그라운드 결과 저장소 초기화');
-                    }
-                    
-                    const resultId = `bg_${timestamp}_${Date.now()}`;
-                    global.backgroundMakeupTipsResults.set(resultId, {
-                        makeupTips: makeupTipsResult.raw_makeup_tips,
-                        timestamp: Date.now(),
-                        expiresAt: Date.now() + 60 * 60 * 1000 // 1시간 후 만료
-                    });
-                    
-                    console.log('백그라운드 결과 저장됨:', resultId);
-                    console.log('현재 저장된 결과 수:', global.backgroundMakeupTipsResults.size);
-                })
-                .catch(error => {
-                    console.error('=== 백그라운드 메이크업 팁 생성 오류 ===');
-                    console.error('오류 타입:', error.constructor.name);
-                    console.error('오류 메시지:', error.message);
-                    console.error('오류 스택:', error.stack);
-                });
-            
-            // 즉시 응답 (백그라운드에서 처리 중)
-            console.log('백그라운드 처리 시작 응답 전송');
-            
-            // resultId 생성 (클라이언트가 결과 조회할 수 있도록)
-            const resultId = `bg_${timestamp}_${Date.now()}`;
-            
-            return res.json({
-                success: true,
-                message: '백그라운드에서 메이크업 팁 생성 중...',
-                background: true,
-                resultId: resultId  // 결과 조회용 ID 추가
-            });
-        }
-        
-        // 일반 처리
-        console.log('일반 메이크업 팁 생성 시작');
-        const makeupTipsResult = await getMakeupTips(analysisResult);
-
-        // AI 거부 응답인지 확인
-        if (makeupTipsResult.error === 'ai_refusal') {
-            res.json({
-                success: false,
-                error: 'ai_refusal',
-                reason: makeupTipsResult.reason
-            });
-        } else {
-            res.json({
-                success: true,
-                makeupTips: makeupTipsResult.raw_makeup_tips
-            });
-        }
-
-    } catch (error) {
-        console.error('메이크업 팁 생성 오류:', error);
-        
-        res.status(500).json({
-            success: false,
-            reason: '메이크업 팁 생성 중 오류가 발생했습니다.',
-            details: error.message
-        });
-    }
-});
-
-// 백그라운드 메이크업 팁 결과 조회 API
-app.get('/api/background-makeup-tips/:resultId', async (req, res) => {
-    try {
-        const { resultId } = req.params;
-        
-        if (!resultId) {
-            return res.status(400).json({ 
-                success: false, 
-                reason: '결과 ID가 필요합니다.' 
-            });
-        }
-
-        if (!global.backgroundMakeupTipsResults) {
-            return res.status(404).json({
-                success: false,
-                reason: '백그라운드 결과를 찾을 수 없습니다.'
-            });
-        }
-
-        const result = global.backgroundMakeupTipsResults.get(resultId);
-        
-        if (!result) {
-            return res.status(404).json({
-                success: false,
-                reason: '해당 결과를 찾을 수 없습니다.'
-            });
-        }
-
-        // 만료 확인
-        if (new Date() > new Date(result.expiresAt)) {
-            global.backgroundMakeupTipsResults.delete(resultId);
-            return res.status(410).json({
-                success: false,
-                reason: '결과가 만료되었습니다.'
-            });
-        }
-
-        console.log('백그라운드 메이크업 팁 결과 조회:', resultId);
-        
-        res.json({
-            success: true,
-            makeupTips: result.makeupTips,
-            timestamp: result.timestamp
-        });
-
-    } catch (error) {
-        console.error('백그라운드 결과 조회 오류:', error);
-        
-        res.status(500).json({
-            success: false,
-            reason: '백그라운드 결과 조회 중 오류가 발생했습니다.',
-            details: error.message
-        });
-    }
-});
 
 // 서버 상태 확인 API
 app.get('/api/health', (req, res) => {
