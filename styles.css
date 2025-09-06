@@ -1,4 +1,229 @@
 /* 전역 스타일 */
+
+/* 1단계: 서비스 안내 및 약관동의 스타일 */
+.service-info-section {
+    margin: 0 -20px 2rem -20px;
+}
+
+.service-card {
+    background: #ffffff;
+    border-radius: 0;
+    padding: 1.5rem 20px;
+    text-align: center;
+    box-shadow: none;
+    border: none;
+    border-top: 1px solid #e9ecef;
+    border-bottom: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.service-card:hover {
+    box-shadow: 0 4px 25px rgba(205, 61, 58, 0.15);
+    border-color: #CD3D3A;
+}
+
+.service-title-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.service-title {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.service-price {
+    font-weight: 600;
+    color: #CD3D3A;
+    font-size: 0.95rem;
+}
+
+.terms-consent-section {
+    background: #ffffff;
+    border-radius: 0;
+    padding: 1.5rem 20px;
+    margin: 0 -20px 2rem -20px;
+    border-top: 1px solid #e9ecef;
+    border-bottom: 1px solid #e9ecef;
+    text-align: left;
+}
+
+.terms-consent-section h3 {
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.terms-subtitle {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+    font-style: italic;
+    text-align: center;
+}
+
+.terms-content {
+    margin-bottom: 2rem;
+}
+
+.terms-item {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.terms-item h4 {
+    color: #CD3D3A;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.terms-item h4 input[type="checkbox"] {
+    margin: 0;
+    transform: scale(1.2);
+}
+
+.terms-item ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.terms-item li {
+    padding: 0.3rem 0;
+    color: #555;
+    font-size: 0.9rem;
+    position: relative;
+    padding-left: 1rem;
+}
+
+.terms-item li::before {
+    content: "•";
+    color: #CD3D3A;
+    position: absolute;
+    left: 0;
+}
+
+
+.consent-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.checkbox-label.required {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.checkbox-label.required:hover {
+    border-color: #CD3D3A;
+    background: #fff5f5;
+}
+
+.checkbox-label.required input[type="checkbox"]:checked + .checkmark + .checkbox-text {
+    color: #CD3D3A;
+}
+
+.checkbox-text {
+    flex: 1;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.terms-link {
+    color: #CD3D3A;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.terms-link:hover {
+    text-decoration: underline;
+}
+
+#next-to-payment:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* 푸터 링크 스타일 */
+.footer-links {
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.footer-link {
+    color: #CD3D3A;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.footer-link:hover {
+    text-decoration: underline;
+}
+
+.footer-separator {
+    margin: 0 1rem;
+    color: #999;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .service-info-section {
+        margin: 0 -15px 2rem -15px;
+    }
+    
+    .service-card {
+        padding: 1.2rem 15px;
+    }
+    
+    .service-title-price {
+        font-size: 0.85rem;
+    }
+    
+    .service-title {
+        font-size: 0.85rem;
+    }
+    
+    .service-price {
+        font-size: 0.9rem;
+    }
+    
+    .terms-consent-section {
+        margin: 0 -15px 2rem -15px;
+        padding: 1.2rem 15px;
+    }
+    
+    .checkbox-label.required {
+        padding: 0.75rem;
+    }
+    
+    .footer-links {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .footer-separator {
+        display: none;
+    }
+}
 * {
     margin: 0;
     padding: 0;
@@ -755,6 +980,8 @@ body {
     display: flex;
     justify-content: center;
     margin-top: 30px;
+    border: none;
+    box-shadow: none;
 }
 
 /* 로딩 모달 */

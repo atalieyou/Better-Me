@@ -28,11 +28,46 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM이 로드되었습니다. 앱을 초기화합니다...');
     try {
         initializeApp();
+        setupRealTimeValidation();
         console.log('앱 초기화 완료');
     } catch (error) {
         console.error('앱 초기화 중 오류 발생:', error);
     }
 });
+
+// 실시간 체크박스 검증 설정
+function setupRealTimeValidation() {
+    const checkboxes = [
+        document.getElementById('service-terms'),
+        document.getElementById('privacy-consent'),
+        document.getElementById('privacy-transfer')
+    ];
+    
+    const nextButton = document.getElementById('next-to-payment');
+    
+    function validateTerms() {
+        const allChecked = checkboxes.every(checkbox => checkbox && checkbox.checked);
+        nextButton.disabled = !allChecked;
+        
+        if (allChecked) {
+            nextButton.style.background = '#CD3D3A';
+            nextButton.style.cursor = 'pointer';
+        } else {
+            nextButton.style.background = '#ccc';
+            nextButton.style.cursor = 'not-allowed';
+        }
+    }
+    
+    // 각 체크박스에 이벤트 리스너 추가
+    checkboxes.forEach(checkbox => {
+        if (checkbox) {
+            checkbox.addEventListener('change', validateTerms);
+        }
+    });
+    
+    // 초기 상태 설정
+    validateTerms();
+}
 
 // WebSocket 연결 설정
 function setupWebSocket() {
@@ -658,10 +693,21 @@ function setupConsentValidation() {
 
 // 사진 활용 동의 유효성 검사
 function validateConsent() {
-    const photoConsent = document.getElementById('photo-consent').checked;
-    const serviceTerms = document.getElementById('service-terms').checked;
+    const serviceTerms = document.getElementById('service-terms');
+    const privacyConsent = document.getElementById('privacy-consent');
+    const privacyTransfer = document.getElementById('privacy-transfer');
     
-    return photoConsent && serviceTerms;
+    // 요소가 존재하는지 확인
+    if (!serviceTerms || !privacyConsent || !privacyTransfer) {
+        console.error('체크박스 요소를 찾을 수 없습니다:', {
+            serviceTerms: !!serviceTerms,
+            privacyConsent: !!privacyConsent,
+            privacyTransfer: !!privacyTransfer
+        });
+        return false;
+    }
+    
+    return serviceTerms.checked && privacyConsent.checked && privacyTransfer.checked;
 }
 
 // 결제 관련 함수들
