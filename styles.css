@@ -56,18 +56,36 @@ body {
     text-align: center;
 }
 
-.main-logo {
-    max-width: 400px;
-    height: auto;
-    max-height: 100px;
-    object-fit: contain;
-    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+.logo-text {
+    font-size: 3.5rem;
+    font-weight: 400;
+    color: #CD3D3A;
+    margin: 0;
+    font-family: 'Brush Script MT', 'Lucida Handwriting', cursive, sans-serif;
+    letter-spacing: 0.05em;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    font-style: italic;
+    transform: rotate(-2deg);
     transition: all 0.3s ease;
+    position: relative;
 }
 
-.main-logo:hover {
-    transform: scale(1.05);
-    filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.3));
+.logo-text::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    background: linear-gradient(45deg, #CD3D3A, #B91C1C, #CD3D3A);
+    border-radius: 15px;
+    z-index: -1;
+    opacity: 0.1;
+}
+
+.logo-text:hover {
+    transform: scale(1.05) rotate(-1deg);
+    color: #B91C1C;
 }
 
 .header p {
