@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const http = require('http');
 const WebSocket = require('ws');
+const axios = require('axios');
 require('dotenv').config();
 
 const { analyzeFaceWithChatGPT5 } = require('./services/gpt4oService');
@@ -156,6 +157,85 @@ app.get('/api/status', (req, res) => {
         version: '1.0.0',
         status: 'running'
     });
+});
+
+// OpenAI 프록시 엔드포인트 (키 숨김)
+app.post('/api/openai/chat/completions', async (req, res) => {
+    try {
+        const { messages, model = 'gpt-4o', max_tokens = 1000, temperature = 0.7 } = req.body;
+        
+        if (!messages || !Array.isArray(messages)) {
+            return res.status(400).json({ error: 'Messages array is required' });
+        }
+
+        const openaiApiKey = process.env.OPENAI_API_KEY;
+        if (!openaiApiKey) {
+            return res.status(500).json({ error: 'OpenAI API key not configured' });
+        }
+
+        const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+            model,
+            messages,
+            max_tokens,
+            temperature
+        }, {
+            headers: {
+                'Authorization': `Bearer ${openaiApiKey}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('OpenAI API Error:', error.response?.data || error.message);
+        res.status(error.response?.status || 500).json({
+            error: 'OpenAI API request failed',
+            message: error.response?.data?.error?.message || error.message
+        });
+    }
+});
+
+// OpenAI 이미지 분석 프록시 엔드포인트
+app.post('/api/openai/vision', async (req, res) => {
+    try {
+        const { image, prompt, model = 'gpt-4o' } = req.body;
+        
+        if (!image || !prompt) {
+            return res.status(400).json({ error: 'Image and prompt are required' });
+        }
+
+        const openaiApiKey = process.env.OPENAI_API_KEY;
+        if (!openaiApiKey) {
+            return res.status(500).json({ error: 'OpenAI API key not configured' });
+        }
+
+        const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+            model,
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: prompt },
+                        { type: 'image_url', image_url: { url: image } }
+                    ]
+                }
+            ],
+            max_tokens: 1000
+        }, {
+            headers: {
+                'Authorization': `Bearer ${openaiApiKey}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('OpenAI Vision API Error:', error.response?.data || error.message);
+        res.status(error.response?.status || 500).json({
+            error: 'OpenAI Vision API request failed',
+            message: error.response?.data?.error?.message || error.message
+        });
+    }
 });
 
 // 얼굴 분석 API (3장 이미지 지원)
