@@ -88,6 +88,7 @@
 .terms-item h4 input[type="checkbox"] {
     margin: 0;
     transform: scale(1.2);
+    accent-color: #CD3D3A;
 }
 
 .terms-item ul {
