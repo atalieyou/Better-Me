@@ -405,6 +405,46 @@ function isKakaoTalkBrowser() {
     return userAgent.includes('kakaotalk') || userAgent.includes('kakao');
 }
 
+// 모바일 디버깅을 위한 화면 로그 표시 함수
+function showDebugLog(message) {
+    // 디버그 로그 컨테이너가 없으면 생성
+    let debugContainer = document.getElementById('debug-log-container');
+    if (!debugContainer) {
+        debugContainer = document.createElement('div');
+        debugContainer.id = 'debug-log-container';
+        debugContainer.style.cssText = `
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 10000;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+        `;
+        document.body.appendChild(debugContainer);
+    }
+    
+    // 로그 메시지 추가
+    const logEntry = document.createElement('div');
+    logEntry.textContent = new Date().toLocaleTimeString() + ': ' + message;
+    logEntry.style.marginBottom = '2px';
+    debugContainer.appendChild(logEntry);
+    
+    // 최대 10개 로그만 유지
+    while (debugContainer.children.length > 10) {
+        debugContainer.removeChild(debugContainer.firstChild);
+    }
+    
+    // 자동 스크롤
+    debugContainer.scrollTop = debugContainer.scrollHeight;
+}
+
 // 앱 상태 복원
 async function restoreAppState() {
     console.log('=== 앱 상태 복원 시작 ===');
@@ -438,12 +478,18 @@ async function restoreAppState() {
             console.log('=== 5단계에서 새로고침됨 ===');
             console.log('서버에서 분석 결과 확인 중...');
             
+            // 모바일 디버깅을 위한 화면 로그 표시
+            showDebugLog('=== 5단계에서 새로고침됨 ===');
+            showDebugLog('서버에서 분석 결과 확인 중...');
+            
             // 서버에서 분석 결과 로드 시도
             const serverResult = await loadAnalysisFromServer();
             console.log('서버 로드 결과:', serverResult);
+            showDebugLog('서버 로드 결과: ' + (serverResult ? '성공' : '실패'));
             
             if (serverResult) {
                 console.log('✅ 서버에서 분석 결과 복원 성공:', serverResult);
+                showDebugLog('✅ 서버에서 분석 결과 복원 성공');
                 
                 // 분석 결과 복원
                 analysisResults = { raw_analysis: serverResult.analysisResult };
@@ -454,12 +500,15 @@ async function restoreAppState() {
                 }
                 
                 console.log('✅ 분석 결과 유효. 5단계 유지');
+                showDebugLog('✅ 분석 결과 유효. 5단계 유지');
                 currentStep = step;
             } else {
                 // 서버에서 로드 실패 시 sessionStorage 폴백 시도
                 console.log('❌ 서버 로드 실패, sessionStorage 폴백 시도...');
+                showDebugLog('❌ 서버 로드 실패, sessionStorage 폴백 시도...');
                 const savedAnalysis = sessionStorage.getItem('beautyAI_analysisResults');
                 console.log('sessionStorage 분석 결과:', savedAnalysis ? '있음' : '없음');
+                showDebugLog('sessionStorage 분석 결과: ' + (savedAnalysis ? '있음' : '없음'));
                 
                 if (savedAnalysis) {
                     try {
@@ -730,9 +779,11 @@ async function loadAnalysisFromServer() {
     try {
         const resultId = sessionStorage.getItem('beautyAI_serverResultId');
         console.log('🔍 서버 저장된 분석 결과 ID:', resultId);
+        showDebugLog('🔍 서버 ID: ' + (resultId ? resultId.substring(0, 20) + '...' : '없음'));
         
         if (!resultId) {
             console.log('❌ 서버 저장된 분석 결과 ID가 없습니다');
+            showDebugLog('❌ 서버 ID가 없습니다');
             return null;
         }
 
