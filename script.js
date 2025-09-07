@@ -405,8 +405,18 @@ function isKakaoTalkBrowser() {
     return userAgent.includes('kakaotalk') || userAgent.includes('kakao');
 }
 
-// 모바일 디버깅을 위한 화면 로그 표시 함수
+// 모바일 디버깅을 위한 화면 로그 표시 함수 (개발 환경에서만)
 function showDebugLog(message) {
+    // 개발 환경에서만 표시 (localhost 또는 로컬 IP)
+    const isDevelopment = window.location.hostname === 'localhost' || 
+                         window.location.hostname.startsWith('192.168.') ||
+                         window.location.hostname.startsWith('10.') ||
+                         window.location.hostname.startsWith('172.');
+    
+    if (!isDevelopment) {
+        return; // 프로덕션 환경에서는 표시하지 않음
+    }
+    
     // 디버그 로그 컨테이너가 없으면 생성
     let debugContainer = document.getElementById('debug-log-container');
     if (!debugContainer) {
