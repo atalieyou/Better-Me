@@ -198,11 +198,11 @@ function handleAnalysisComplete(result) {
         displayFullAIResponse(analysisResults);
         
         // 4단계에서 5단계로 자동 이동
+        const oldStep = currentStep;
         currentStep = 5;
+        showDebugLog(`[AUTO] 단계 전환: ${oldStep} → ${currentStep}`);
         updateProgressSteps();
         showCurrentStep();
-        
-        // 상태 저장
         saveAppState();
         
         // 사용자에게 알림
@@ -368,9 +368,12 @@ async function loadSharedResult(resultId) {
             }
             
             // 5단계로 이동하여 결과 표시
+            const oldStep = currentStep;
             currentStep = 5;
+            showDebugLog(`[AUTO] 단계 전환: ${oldStep} → ${currentStep}`);
             updateProgressSteps();
             showCurrentStep();
+            saveAppState();
             
             
             // 공유 링크 표시
@@ -1945,9 +1948,12 @@ async function startAnalysis() {
                 console.log('AI 분석 완료! 5단계로 이동합니다.');
                 
                 // 5단계로 자동 이동
+                const oldStep = currentStep;
                 currentStep = 5;
+                showDebugLog(`[AUTO] 단계 전환: ${oldStep} → ${currentStep}`);
                 updateProgressSteps();
                 showCurrentStep();
+                saveAppState();
                 
                 // 분석 결과 표시
                 displayFullAIResponse(analysisResults);
@@ -2493,9 +2499,12 @@ async function checkAnalysisProgress(sessionId) {
             if (progress.status === 'completed') {
                 // AI 분석이 완료된 경우 5단계로 자동 이동
                 console.log('AI 분석 완료되어 5단계로 자동 이동');
+                const oldStep = currentStep;
                 currentStep = 5;
+                showDebugLog(`[AUTO] 단계 전환: ${oldStep} → ${currentStep}`);
                 updateProgressSteps();
                 showCurrentStep();
+                saveAppState();
                 
                 // 세션 ID 제거
                 sessionStorage.removeItem('beautyAI_analysisSessionId');
