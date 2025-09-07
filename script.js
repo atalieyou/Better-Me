@@ -409,62 +409,18 @@ function isKakaoTalkBrowser() {
     return userAgent.includes('kakaotalk') || userAgent.includes('kakao');
 }
 
-// 모바일 디버깅을 위한 화면 로그 표시 함수 (개발 환경에서만)
+// 모바일 디버깅을 위한 화면 로그 표시 함수 (비활성화)
 function showDebugLog(message) {
-    // 개발 환경에서만 표시 (localhost 또는 로컬 IP)
-    const isDevelopment = window.location.hostname === 'localhost' || 
-                         window.location.hostname.startsWith('192.168.') ||
-                         window.location.hostname.startsWith('10.') ||
-                         window.location.hostname.startsWith('172.');
+    // 디버그 로그 비활성화 - 콘솔에만 출력
+    console.log('🔍 디버그:', message);
     
-    // 디버그 정보 표시
-    console.log('🔍 디버그 로그 호출:', {
-        hostname: window.location.hostname,
-        isDevelopment: isDevelopment,
-        message: message
-    });
-    
-    if (!isDevelopment) {
-        console.log('❌ 프로덕션 환경이므로 디버그 로그 숨김');
-        return; // 프로덕션 환경에서는 표시하지 않음
+    // 모바일에서 중요한 로그만 alert로 표시
+    if (message.includes('5단계에서 새로고침됨') || 
+        message.includes('서버 로드 결과: 실패') ||
+        message.includes('서버에서 분석 결과를 찾을 수 없습니다')) {
+        alert('🔍 ' + message);
     }
-    
-    // 디버그 로그 컨테이너가 없으면 생성
-    let debugContainer = document.getElementById('debug-log-container');
-    if (!debugContainer) {
-        debugContainer = document.createElement('div');
-        debugContainer.id = 'debug-log-container';
-        debugContainer.style.cssText = `
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            z-index: 10000;
-            max-height: 200px;
-            overflow-y: auto;
-            font-family: monospace;
-        `;
-        document.body.appendChild(debugContainer);
-    }
-    
-    // 로그 메시지 추가
-    const logEntry = document.createElement('div');
-    logEntry.textContent = new Date().toLocaleTimeString() + ': ' + message;
-    logEntry.style.marginBottom = '2px';
-    debugContainer.appendChild(logEntry);
-    
-    // 최대 10개 로그만 유지
-    while (debugContainer.children.length > 10) {
-        debugContainer.removeChild(debugContainer.firstChild);
-    }
-    
-    // 자동 스크롤
-    debugContainer.scrollTop = debugContainer.scrollHeight;
+    return;
 }
 
 // 앱 상태 복원
@@ -786,6 +742,14 @@ async function saveAnalysisToServer() {
         sessionStorage.setItem('beautyAI_serverResultId', result.resultId);
         console.log('💾 서버 결과 ID 저장됨:', result.resultId);
         
+        // 저장 후 즉시 검증
+        const verifyResponse = await fetch(`${getApiBaseUrl()}/api/get-analysis-result-server/${result.resultId}`);
+        if (verifyResponse.ok) {
+            console.log('✅ 서버 저장 검증 성공');
+        } else {
+            console.error('❌ 서버 저장 검증 실패:', verifyResponse.status);
+        }
+        
         return result.resultId;
         
     } catch (error) {
@@ -835,11 +799,15 @@ async function loadAnalysisFromServer() {
         if (!response.ok) {
             if (response.status === 404) {
                 console.log('❌ 서버에서 분석 결과를 찾을 수 없습니다');
+                showDebugLog('❌ 서버에서 분석 결과를 찾을 수 없습니다');
                 sessionStorage.removeItem('beautyAI_serverResultId');
             } else if (response.status === 410) {
                 console.log('❌ 분석 결과가 만료되었습니다');
+                showDebugLog('❌ 분석 결과가 만료되었습니다');
                 sessionStorage.removeItem('beautyAI_serverResultId');
             } else {
+                console.log(`❌ 서버 로드 실패: ${response.status}`);
+                showDebugLog(`❌ 서버 로드 실패: ${response.status}`);
                 throw new Error(`서버 로드 실패: ${response.status}`);
             }
             return null;
@@ -861,7 +829,16 @@ async function loadAnalysisFromServer() {
 }
 
 // 앱 상태 저장 (하이브리드 방식)
+let isSaving = false; // 중복 저장 방지 플래그
+
 async function saveAppState() {
+    // 중복 저장 방지
+    if (isSaving) {
+        console.log('이미 저장 중입니다. 중복 호출 무시');
+        return;
+    }
+    
+    isSaving = true;
     console.log('=== 앱 상태 저장 시작 ===');
     showDebugLog('=== 앱 상태 저장 시작 ===');
     showDebugLog(`[SAVE] 현재 단계 저장 시도: ${currentStep}`);
@@ -906,6 +883,8 @@ async function saveAppState() {
         
     } catch (error) {
         console.error('앱 상태 저장 중 오류:', error);
+    } finally {
+        isSaving = false; // 플래그 리셋
     }
 }
 
