@@ -1,7 +1,7 @@
 {
   "name": "better-me-app",
   "version": "1.0.0",
-  "description": "Better Me - AI 외모 분석 및 메이크업 팁 서비스",
+  "description": "Better me - AI 외모 분석 및 메이크업 팁 서비스",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -32,6 +32,6 @@
     "analysis",
     "gpt-4o"
   ],
-  "author": "Better Me App",
+  "author": "Better me App",
   "license": "MIT"
 }

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개인정보 외부 전송·제공 동의 - Better me</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .privacy-detail-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            min-height: 100vh;
+        }
+        
+        .back-button {
+            background: #CD3D3A;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: #b83532;
+            transform: translateY(-2px);
+        }
+        
+        .privacy-title {
+            color: #CD3D3A;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .privacy-content {
+            line-height: 1.8;
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        .privacy-content h3 {
+            color: #CD3D3A;
+            font-size: 1.2rem;
+            margin: 2rem 0 1rem 0;
+            font-weight: 600;
+        }
+        
+        .privacy-content p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .privacy-content ul {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+        
+        .privacy-content li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .company-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 4px solid #CD3D3A;
+        }
+        
+        .company-title {
+            color: #CD3D3A;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .info-item {
+            margin-bottom: 0.8rem;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .bottom-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 3rem;
+            gap: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .privacy-detail-container {
+                padding: 1rem;
+            }
+            
+            .privacy-title {
+                font-size: 1.5rem;
+            }
+            
+            .bottom-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="privacy-detail-container">
+        <button class="back-button" onclick="goBack()">
+            ← 뒤로가기
+        </button>
+        
+        <h1 class="privacy-title">개인정보 외부 전송·제공 동의</h1>
+        
+        <div class="privacy-content">
+            <p>Better me는 서비스 제공 및 결제 처리를 위하여 이용자의 개인정보를 아래와 같이 제3자에게 제공합니다.</p>
+            
+            <div class="company-section">
+                <div class="company-title">① OpenAI Inc. (미국 소재)</div>
+                <div class="info-item">
+                    <span class="info-label">제공 항목:</span> 얼굴 이미지(이용자가 업로드한 사진)
+                </div>
+                <div class="info-item">
+                    <span class="info-label">제공 목적:</span> 인공지능 분석 서비스 제공 (얼굴 분석, 메이크업 팁 생성)
+                </div>
+                <div class="info-item">
+                    <span class="info-label">보유 및 이용 기간:</span> 분석 처리 완료 후 최대 30일간 보안 목적으로 보관 후 자동 삭제 (모델 학습에는 활용되지 않음)
+                </div>
+            </div>
+            
+            <div class="company-section">
+                <div class="company-title">② KG이니시스</div>
+                <div class="info-item">
+                    <span class="info-label">제공 항목:</span> 결제 관련 정보 (카드사, 승인번호, 결제금액 등)
+                </div>
+                <div class="info-item">
+                    <span class="info-label">제공 목적:</span> 결제 대행 및 처리
+                </div>
+                <div class="info-item">
+                    <span class="info-label">보유 및 이용 기간:</span> 「전자상거래법」 및 「전자금융거래법」에 따라 5년간 보관
+                </div>
+            </div>
+            
+            <div class="company-section">
+                <div class="company-title">③ 간편결제 수단 제공업체 (토스페이먼츠, 카카오페이, 네이버페이 등)</div>
+                <div class="info-item">
+                    <span class="info-label">제공 항목:</span> 결제 관련 정보 (카드사, 승인번호, 결제금액 등)
+                </div>
+                <div class="info-item">
+                    <span class="info-label">제공 목적:</span> 간편결제 서비스 제공 및 처리
+                </div>
+                <div class="info-item">
+                    <span class="info-label">보유 및 이용 기간:</span> 「전자상거래법」 및 「전자금융거래법」에 따라 5년간 보관
+                </div>
+            </div>
+        </div>
+        
+        <div class="bottom-buttons">
+            <button class="back-button" onclick="goBack()">
+                ← 뒤로가기
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            // 1단계 화면으로 돌아가기
+            if (window.opener) {
+                // 팝업으로 열린 경우
+                window.close();
+            } else {
+                // 새 탭으로 열린 경우 - 메인 페이지의 1단계로 이동
+                window.location.href = 'index.html#step-1';
+            }
+        }
+        
+        // 페이지 로드 시 확인
+        window.addEventListener('load', function() {
+            console.log('개인정보 외부 전송·제공 동의 페이지 로드됨');
+        });
+    </script>
+</body>
+</html>

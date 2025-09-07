@@ -548,7 +548,7 @@ app.use('*', (req, res) => {
 
 // 서버 시작
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Better Me App Backend Server가 포트 ${PORT}에서 실행 중입니다.`);
+    console.log(`🚀 Better me App Backend Server가 포트 ${PORT}에서 실행 중입니다.`);
     console.log(`📁 업로드 디렉토리: ${uploadDir}`);
     console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5500'}`);
     console.log(`🔑 OpenAI API Key: ${process.env.OPENAI_API_KEY ? '설정됨' : '설정되지 않음'}`);

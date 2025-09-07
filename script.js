@@ -29,11 +29,19 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
         initializeApp();
         setupRealTimeValidation();
+        checkUrlHash();
         console.log('앱 초기화 완료');
     } catch (error) {
         console.error('앱 초기화 중 오류 발생:', error);
     }
 });
+
+// URL 해시 확인하여 1단계로 이동
+function checkUrlHash() {
+    if (window.location.hash === '#step-1') {
+        showStep(1);
+    }
+}
 
 // 실시간 체크박스 검증 설정
 function setupRealTimeValidation() {
@@ -1830,7 +1838,7 @@ async function saveAnalysisResult() {
             </div>
             
             <div style="text-align: center; margin-top: 30px; color: #666; font-size: 0.9em;">
-                Better Me - AI 외모 분석 결과
+                Better me - AI 외모 분석 결과
             </div>
         `;
         
