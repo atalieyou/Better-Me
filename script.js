@@ -24,10 +24,10 @@ let sessionId = null;
 let isWebSocketConnected = false;
 
 // DOM이 로드된 후 실행
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM이 로드되었습니다. 앱을 초기화합니다...');
     try {
-        initializeApp();
+        await initializeApp();
         setupRealTimeValidation();
         checkUrlHash();
         console.log('앱 초기화 완료');
@@ -215,7 +215,7 @@ function handleAnalysisComplete(result) {
 
 
 // 앱 초기화
-function initializeApp() {
+async function initializeApp() {
     console.log('=== 앱 초기화 시작 ===');
     
     try {
@@ -239,7 +239,7 @@ function initializeApp() {
         checkPaymentStatus();
         
         // 세션 스토리지에서 이전 상태 복원
-        restoreAppState();
+        await restoreAppState();
         
         setupEventListeners();
         console.log('이벤트 리스너 설정 완료');
@@ -399,9 +399,16 @@ async function loadSharedResult(resultId) {
     }
 }
 
+// 카카오톡 환경 감지
+function isKakaoTalkBrowser() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    return userAgent.includes('kakaotalk') || userAgent.includes('kakao');
+}
+
 // 앱 상태 복원
-function restoreAppState() {
+async function restoreAppState() {
     console.log('=== 앱 상태 복원 시작 ===');
+    console.log('카카오톡 환경:', isKakaoTalkBrowser());
     
     try {
         // 저장된 단계 복원
@@ -428,8 +435,57 @@ function restoreAppState() {
             // 업로드된 이미지들은 유지 (3단계에서 필요)
             // uploadedImages 초기화하지 않음
         } else if (step === 5) {
-            console.log('5단계에서 새로고침됨. 5단계에 머뭅니다.');
-            currentStep = step;
+            console.log('=== 5단계에서 새로고침됨 ===');
+            console.log('서버에서 분석 결과 확인 중...');
+            
+            // 서버에서 분석 결과 로드 시도
+            const serverResult = await loadAnalysisFromServer();
+            console.log('서버 로드 결과:', serverResult);
+            
+            if (serverResult) {
+                console.log('✅ 서버에서 분석 결과 복원 성공:', serverResult);
+                
+                // 분석 결과 복원
+                analysisResults = { raw_analysis: serverResult.analysisResult };
+                
+                // 이미지 데이터 복원
+                if (serverResult.uploadedImages) {
+                    uploadedImages = serverResult.uploadedImages;
+                }
+                
+                console.log('✅ 분석 결과 유효. 5단계 유지');
+                currentStep = step;
+            } else {
+                // 서버에서 로드 실패 시 sessionStorage 폴백 시도
+                console.log('❌ 서버 로드 실패, sessionStorage 폴백 시도...');
+                const savedAnalysis = sessionStorage.getItem('beautyAI_analysisResults');
+                console.log('sessionStorage 분석 결과:', savedAnalysis ? '있음' : '없음');
+                
+                if (savedAnalysis) {
+                    try {
+                        analysisResults = JSON.parse(savedAnalysis);
+                        console.log('✅ sessionStorage에서 분석 결과 복원 성공');
+                        
+                        if (analysisResults && analysisResults.raw_analysis) {
+                            console.log('✅ 분석 결과 유효. 5단계 유지');
+                            currentStep = step;
+                        } else {
+                            console.log('❌ 분석 결과가 유효하지 않음. 3단계로 이동');
+                            currentStep = 3;
+                            sessionStorage.setItem('beautyAI_currentStep', '3');
+                        }
+                    } catch (e) {
+                        console.error('❌ 분석 결과 파싱 실패:', e);
+                        console.log('❌ 분석 결과 없음. 3단계로 이동');
+                        currentStep = 3;
+                        sessionStorage.setItem('beautyAI_currentStep', '3');
+                    }
+                } else {
+                    console.log('❌ 분석 결과 없음. 3단계로 이동');
+                    currentStep = 3;
+                    sessionStorage.setItem('beautyAI_currentStep', '3');
+                }
+            }
         } else {
             currentStep = step;
         }
@@ -451,13 +507,16 @@ function restoreAppState() {
         
         // 저장된 분석 결과 복원
         const savedAnalysis = sessionStorage.getItem('beautyAI_analysisResults');
+        console.log('저장된 분석 결과 확인:', savedAnalysis ? '있음' : '없음');
         if (savedAnalysis) {
             try {
                 analysisResults = JSON.parse(savedAnalysis);
-                console.log('저장된 분석 결과 복원 완료');
+                console.log('저장된 분석 결과 복원 완료:', analysisResults);
             } catch (e) {
                 console.error('분석 결과 파싱 실패:', e);
             }
+        } else {
+            console.log('저장된 분석 결과가 없습니다');
         }
         
         
@@ -501,8 +560,19 @@ function showStep(step) {
         // 현재 단계 패널 표시
         const currentStepPanel = document.getElementById(`step-${step}`);
         if (currentStepPanel) {
-                currentStepPanel.classList.add('active');
+            currentStepPanel.classList.add('active');
             console.log(`단계 ${step} 패널 활성화 완료`);
+            
+            // 5단계인 경우 분석 결과 검증 (restoreAppState에서 이미 검증했으므로 제거)
+            // if (step === 5) {
+            //     if (!analysisResults || !analysisResults.raw_analysis) {
+            //         console.log('5단계에서 분석 결과 없음. 3단계로 이동');
+            //         currentStep = 3;
+            //         sessionStorage.setItem('beautyAI_currentStep', '3');
+            //         showStep(3);
+            //         return;
+            //     }
+            // }
         } else {
             console.error(`단계 ${step} 패널을 찾을 수 없습니다`);
         }
@@ -574,24 +644,180 @@ function updateUIAfterRestore() {
     }
 }
 
-// 앱 상태 저장
-function saveAppState() {
+// 서버 기반 분석 결과 저장
+async function saveAnalysisToServer() {
+    try {
+        console.log('💾 서버에 분석 결과 저장 시도 중...');
+        
+        if (!analysisResults) {
+            console.log('❌ 저장할 분석 결과가 없습니다');
+            return null;
+        }
+
+        // 네트워크 연결 확인
+        if (!navigator.onLine) {
+            console.log('❌ 네트워크 연결이 없습니다. 서버 저장 건너뜀');
+            return null;
+        }
+
+        // 이미지 데이터 준비 (base64 데이터만 포함)
+        const imageDataForStorage = {};
+        if (uploadedImages.front && uploadedImages.front.dataUrl) {
+            imageDataForStorage.front = { dataUrl: uploadedImages.front.dataUrl };
+        }
+        if (uploadedImages['45'] && uploadedImages['45'].dataUrl) {
+            imageDataForStorage['45'] = { dataUrl: uploadedImages['45'].dataUrl };
+        }
+        if (uploadedImages['90'] && uploadedImages['90'].dataUrl) {
+            imageDataForStorage['90'] = { dataUrl: uploadedImages['90'].dataUrl };
+        }
+
+        console.log('📤 저장할 데이터:', {
+            hasAnalysis: !!analysisResults.raw_analysis,
+            hasImages: Object.keys(imageDataForStorage).length,
+            currentStep: currentStep
+        });
+
+        // 타임아웃 설정 (10초)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        const apiUrl = `${getApiBaseUrl()}/api/save-analysis-result`;
+        console.log('📡 API URL:', apiUrl);
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                analysisResult: analysisResults.raw_analysis,
+                uploadedImages: imageDataForStorage,
+                currentStep: currentStep
+            }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        console.log('📡 서버 응답 상태:', response.status);
+
+        if (!response.ok) {
+            throw new Error(`서버 저장 실패: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ 서버에 분석 결과 저장 완료:', result);
+        
+        // 결과 ID를 sessionStorage에 저장
+        sessionStorage.setItem('beautyAI_serverResultId', result.resultId);
+        console.log('💾 서버 결과 ID 저장됨:', result.resultId);
+        
+        return result.resultId;
+        
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            console.error('❌ 서버 저장 타임아웃:', error);
+        } else {
+            console.error('❌ 서버 저장 중 오류:', error);
+        }
+        return null;
+    }
+}
+
+// 서버에서 분석 결과 로드
+async function loadAnalysisFromServer() {
+    try {
+        const resultId = sessionStorage.getItem('beautyAI_serverResultId');
+        console.log('🔍 서버 저장된 분석 결과 ID:', resultId);
+        
+        if (!resultId) {
+            console.log('❌ 서버 저장된 분석 결과 ID가 없습니다');
+            return null;
+        }
+
+        // 네트워크 연결 확인
+        if (!navigator.onLine) {
+            console.log('❌ 네트워크 연결이 없습니다. 서버 로드 건너뜀');
+            return null;
+        }
+
+        console.log('🌐 서버에서 분석 결과 로드 시도 중...');
+        console.log('📡 API URL:', `${getApiBaseUrl()}/api/get-analysis-result-server/${resultId}`);
+
+        // 타임아웃 설정 (5초)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const response = await fetch(`${getApiBaseUrl()}/api/get-analysis-result-server/${resultId}`, {
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        console.log('📡 서버 응답 상태:', response.status);
+        
+        if (!response.ok) {
+            if (response.status === 404) {
+                console.log('❌ 서버에서 분석 결과를 찾을 수 없습니다');
+                sessionStorage.removeItem('beautyAI_serverResultId');
+            } else if (response.status === 410) {
+                console.log('❌ 분석 결과가 만료되었습니다');
+                sessionStorage.removeItem('beautyAI_serverResultId');
+            } else {
+                throw new Error(`서버 로드 실패: ${response.status}`);
+            }
+            return null;
+        }
+
+        const result = await response.json();
+        console.log('✅ 서버에서 분석 결과 로드 완료:', result);
+        
+        return result.result;
+        
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            console.error('❌ 서버 로드 타임아웃:', error);
+        } else {
+            console.error('❌ 서버 로드 중 오류:', error);
+        }
+        return null;
+    }
+}
+
+// 앱 상태 저장 (하이브리드 방식)
+async function saveAppState() {
     console.log('=== 앱 상태 저장 시작 ===');
     
     try {
         // 현재 단계 저장
         sessionStorage.setItem('beautyAI_currentStep', currentStep.toString());
         
-        // 이미지들 데이터 저장
+        // 이미지들 데이터 저장 (압축된 버전)
         if (uploadedImages && (uploadedImages.front || uploadedImages['45'] || uploadedImages['90'])) {
-            sessionStorage.setItem('beautyAI_uploadedImages', JSON.stringify(uploadedImages));
+            // 이미지는 압축해서 저장
+            const compressedImages = compressImagesForStorage(uploadedImages);
+            sessionStorage.setItem('beautyAI_uploadedImages', JSON.stringify(compressedImages));
         }
         
-        // 분석 결과 저장
+        // 분석 결과는 서버에 저장
         if (analysisResults) {
-            sessionStorage.setItem('beautyAI_analysisResults', JSON.stringify(analysisResults));
+            console.log('분석 결과를 서버에 저장 중...');
+            const resultId = await saveAnalysisToServer();
+            if (resultId) {
+                console.log('서버 저장 성공:', resultId);
+            } else {
+                console.log('서버 저장 실패, sessionStorage에 폴백 저장');
+                // 폴백: sessionStorage에 저장 시도
+                try {
+                    sessionStorage.setItem('beautyAI_analysisResults', JSON.stringify(analysisResults));
+                } catch (e) {
+                    console.error('sessionStorage 저장도 실패:', e);
+                }
+            }
+        } else {
+            console.log('저장할 분석 결과가 없습니다');
         }
-        
         
         console.log('=== 앱 상태 저장 완료 ===');
         console.log('저장된 상태:', {
@@ -603,6 +829,24 @@ function saveAppState() {
     } catch (error) {
         console.error('앱 상태 저장 중 오류:', error);
     }
+}
+
+// 이미지 압축 함수 (모바일 최적화)
+function compressImagesForStorage(images) {
+    const compressed = {};
+    
+    Object.keys(images).forEach(key => {
+        if (images[key] && images[key].dataUrl) {
+            // 이미지 품질을 낮춰서 크기 줄이기
+            compressed[key] = {
+                dataUrl: images[key].dataUrl,
+                // 원본 파일 정보는 제거하여 크기 줄이기
+                compressed: true
+            };
+        }
+    });
+    
+    return compressed;
 }
 
 // 기본 이벤트 리스너 설정 (1단계에서만 필요한 것들)
@@ -1031,7 +1275,7 @@ async function nextStep() {
         return;
     }
     
-    if (currentStep < 6) {
+    if (currentStep < 5) {
         // 1단계에서 2단계로 이동할 때
         if (currentStep === 1) {
             console.log('1단계에서 2단계로 이동 시작');
@@ -1170,6 +1414,56 @@ function showCurrentStep() {
             if (panelStep === 2) {
                 console.log('=== 2단계 (결제) 활성화됨 ===');
                 console.log('window.paymentCompleted 상태:', window.paymentCompleted);
+            }
+            
+            // 3단계일 때 정면 사진 위치로 스크롤
+            if (panelStep === 3) {
+                setTimeout(() => {
+                    console.log('=== 3단계 활성화 시 정면 사진 위치로 스크롤 ===');
+                    
+                    // 모바일 환경 감지
+                    const isMobile = window.innerWidth <= 768;
+                    console.log('모바일 환경:', isMobile);
+                    
+                    // 정면 사진 업로드 영역 찾기
+                    const frontUploadZone = document.querySelector('#upload-zone-front');
+                    if (frontUploadZone) {
+                        // 모바일에서는 더 부드러운 스크롤 사용
+                        if (isMobile) {
+                            frontUploadZone.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'center', // 모바일에서는 center로 조정
+                                inline: 'nearest'
+                            });
+                        } else {
+                            frontUploadZone.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'start',
+                                inline: 'nearest'
+                            });
+                        }
+                        console.log('3단계 정면 사진 위치로 스크롤 완료');
+                    } else {
+                        // 대안: 정면 사진이 포함된 upload-item 찾기
+                        const frontUploadItem = document.querySelector('.upload-item:first-child');
+                        if (frontUploadItem) {
+                            if (isMobile) {
+                                frontUploadItem.scrollIntoView({ 
+                                    behavior: 'smooth', 
+                                    block: 'center',
+                                    inline: 'nearest'
+                                });
+                            } else {
+                                frontUploadItem.scrollIntoView({ 
+                                    behavior: 'smooth', 
+                                    block: 'start',
+                                    inline: 'nearest'
+                                });
+                            }
+                            console.log('3단계 정면 사진 컨테이너로 스크롤 완료');
+                        }
+                    }
+                }, 300); // 모바일에서는 조금 더 늦게 실행
             }
             
             // 4단계일 때 이미지와 포인트 표시

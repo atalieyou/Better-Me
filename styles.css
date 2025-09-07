@@ -1075,6 +1075,37 @@ body {
         width: 100%;
     }
     
+    /* 모바일에서 버튼 순서 변경: 다음단계/결제하기 버튼을 상단에, 이전단계 버튼을 하단에 */
+    .step-buttons {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* 다음단계/결제하기 버튼을 상단으로 이동 */
+    .step-buttons .btn-primary,
+    .step-buttons .btn-success {
+        order: 1;
+    }
+    
+    /* 이전단계 버튼을 하단으로 이동 */
+    .step-buttons .btn-secondary {
+        order: 2;
+    }
+    
+    /* 5단계의 특별한 버튼 스타일도 모바일에서 순서 적용 */
+    #step-5 .step-buttons .btn-success {
+        order: 1;
+    }
+    
+    #step-5 .step-buttons .btn-secondary {
+        order: 2;
+    }
+    
+    /* 1단계의 다음 단계 버튼도 상단으로 */
+    .step-buttons-center .btn-primary {
+        order: 1;
+    }
+    
     .analysis-grid {
         grid-template-columns: 1fr;
     }
@@ -1481,72 +1512,6 @@ body {
     text-align: center;
     letter-spacing: 0;
 }
-/* 6단계 step-panel 디자인 - 피그마 b1t0ifft 채널 기반 */
-#step-6 {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border-radius: 24px;
-    padding: 40px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e2e8f0;
-    color: #1a1a1a;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-#step-6 h2 {
-    color: #1a1a1a;
-    font-family: 'Inter', 'Noto Sans KR', sans-serif;
-    font-size: 2.5rem;
-    font-weight: 700;
-    line-height: 1.2;
-    margin-bottom: 2rem;
-    text-align: center;
-    letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #D45858 0%, #B91C1C 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* 6단계 소제목 (h3) - 5단계와 동일 */
-#step-6 h3 {
-    color: #1a1a1a;
-    font-family: 'Inter', 'Noto Sans KR', sans-serif;
-    font-size: 1.75rem;
-    font-weight: 600;
-    margin-bottom: 24px;
-    text-align: center;
-    letter-spacing: -0.01em;
-}
-
-/* 6단계 이미지 제목 (h4) - 붉은 배경 위에 흰색으로 */
-#step-6 h4 {
-    color: white;
-    font-family: 'Inter', 'Noto Sans KR', sans-serif;
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-bottom: 16px;
-    letter-spacing: -0.01em;
-}
-
-/* 6단계 본문 (p) - 5단계와 동일 */
-#step-6 p {
-    color: #374151;
-    font-family: 'Inter', 'Noto Sans KR', sans-serif;
-    font-size: 1.125rem;
-    line-height: 1.7;
-    margin-bottom: 1rem;
-    text-align: left;
-    font-weight: 400;
-    letter-spacing: 0.01em;
-}
-
-/* 6단계 feedback-container - 5단계와 동일한 기본 스타일 사용 */
-
-/* 6단계는 5단계와 동일한 기본 스타일 사용 */
-
-
-/* 6단계는 5단계와 동일한 기본 스타일 사용 */
 /* 5단계 step-buttons */
 #step-5 .step-buttons {
     display: flex;
@@ -1574,101 +1539,18 @@ body {
     justify-content: center;
 }
 
-/* 6단계 step-buttons - 5단계와 동일 */
-#step-6 .step-buttons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    margin-top: 40px;
-    padding: 24px 0;
-}
-
-#step-6 .btn {
-    padding: 16px 32px;
-    border-radius: 12px;
-    font-family: 'Inter', 'Noto Sans KR', sans-serif;
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: none;
-    cursor: pointer;
-}
-
-#step-6 .btn-primary {
-    background: linear-gradient(135deg, #D45858 0%, #B91C1C 100%);
+#step-5 .btn-success {
+    background: #CD3D3A;
     color: white;
-    box-shadow: 0 4px 16px rgba(212, 88, 88, 0.3);
+    box-shadow: 0 4px 16px rgba(205, 61, 58, 0.3);
 }
 
-#step-6 .btn-primary:hover {
+#step-5 .btn-success:hover {
+    background: #B91C1C;
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(212, 88, 88, 0.4);
+    box-shadow: 0 6px 20px rgba(205, 61, 58, 0.4);
 }
 
-#step-6 .btn-secondary {
-    background: white;
-    color: #374151;
-    border: 2px solid #e2e8f0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-#step-6 .btn-secondary:hover {
-    border-color: #D45858;
-    color: #D45858;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(212, 88, 88, 0.15);
-}
-
-/* 6단계 step-panel - 좌우 완전히 꽉 차게 설정 */
-#step-6.step-panel {
-    padding: 0; /* 패딩 제거 */
-    margin: 0; /* 마진 제거 */
-    width: 100vw; /* 뷰포트 전체 너비 사용 */
-    max-width: 100vw; /* 최대 너비를 뷰포트 너비로 제한 */
-    margin-left: calc(-50vw + 50%); /* 왼쪽 끝까지 확장 */
-    margin-right: calc(-50vw + 50%); /* 오른쪽 끝까지 확장 */
-    box-sizing: border-box; /* 패딩/마진 포함한 크기 계산 */
-}
-
-#step-6.step-panel h2 {
-    padding: 20px 20px 0 20px; /* 상단과 좌우 패딩만 유지 */
-    margin-bottom: 30px;
-    box-sizing: border-box;
-}
-
-/* 6단계 내부 요소들 - 좌우 꽉 차게 설정 */
-#step-6.step-panel .uploaded-image-section {
-    margin: 0 -20px 20px -20px; /* 좌우 여백 제거 */
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-    border: 1px solid #f1f5f9;
-}
-
-#step-6.step-panel .feedback-container {
-    margin: 0 -20px 20px -20px; /* 좌우 여백 제거 */
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-    border: 1px solid #f1f5f9;
-}
-
-#step-6.step-panel .step-buttons {
-    padding: 0 20px 20px 20px; /* 좌우와 하단 패딩만 유지 */
-    box-sizing: border-box;
-}
-
-/* 6단계 메이크업 팁 컨테이너 - 좌우 꽉 차게 설정 */
-#makeup-tips-content {
-    background: white;
-    border-radius: 15px;
-    padding: 40px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    margin: 0 -20px 30px -20px; /* 좌우 여백 제거하여 꽉 차게 */
     font-family: 'Inter', sans-serif;
 }
 

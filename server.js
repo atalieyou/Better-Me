@@ -145,6 +145,9 @@ const analysisResults = new Map();
 // 분석 진행 상태 관리용 메모리 저장소
 const analysisProgress = new Map();
 
+// 서버 기반 분석 결과 저장소 (임시 저장용)
+const serverAnalysisResults = new Map();
+
 // 라우트 설정
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
@@ -505,6 +508,93 @@ app.get('/api/get-analysis-result/:resultId', async (req, res) => {
         });
     }
 });
+
+// 서버 기반 분석 결과 저장 API (모바일 최적화)
+app.post('/api/save-analysis-result', (req, res) => {
+    try {
+        const { analysisResult, uploadedImages, currentStep } = req.body;
+        
+        // 고유 ID 생성
+        const resultId = `analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // 서버에 저장
+        serverAnalysisResults.set(resultId, {
+            analysisResult,
+            uploadedImages,
+            currentStep,
+            createdAt: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24시간 후 만료
+        });
+        
+        console.log('서버에 분석 결과 저장됨:', resultId);
+        
+        res.json({ 
+            success: true, 
+            resultId,
+            message: '분석 결과가 서버에 저장되었습니다.'
+        });
+        
+    } catch (error) {
+        console.error('분석 결과 저장 중 오류:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: '분석 결과 저장 중 오류가 발생했습니다.' 
+        });
+    }
+});
+
+// 서버 기반 분석 결과 조회 API (모바일 최적화)
+app.get('/api/get-analysis-result-server/:resultId', (req, res) => {
+    try {
+        const { resultId } = req.params;
+        
+        if (serverAnalysisResults.has(resultId)) {
+            const result = serverAnalysisResults.get(resultId);
+            
+            // 만료 시간 확인
+            if (new Date() > new Date(result.expiresAt)) {
+                serverAnalysisResults.delete(resultId);
+                return res.status(410).json({ 
+                    success: false, 
+                    error: '분석 결과가 만료되었습니다.' 
+                });
+            }
+            
+            res.json({ 
+                success: true, 
+                result: {
+                    analysisResult: result.analysisResult,
+                    uploadedImages: result.uploadedImages,
+                    currentStep: result.currentStep,
+                    createdAt: result.createdAt
+                }
+            });
+        } else {
+            res.status(404).json({ 
+                success: false, 
+                error: '분석 결과를 찾을 수 없습니다.' 
+            });
+        }
+        
+    } catch (error) {
+        console.error('분석 결과 조회 중 오류:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: '분석 결과 조회 중 오류가 발생했습니다.' 
+        });
+    }
+});
+
+// 만료된 분석 결과 정리 (주기적 실행)
+setInterval(() => {
+    const now = new Date();
+    for (const [resultId, result] of serverAnalysisResults.entries()) {
+        if (now > new Date(result.expiresAt)) {
+            serverAnalysisResults.delete(resultId);
+            console.log('만료된 분석 결과 삭제:', resultId);
+        }
+    }
+}, 60 * 60 * 1000); // 1시간마다 실행
 
 
 
