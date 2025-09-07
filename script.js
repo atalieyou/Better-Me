@@ -217,6 +217,7 @@ function handleAnalysisComplete(result) {
 // 앱 초기화
 async function initializeApp() {
     console.log('=== 앱 초기화 시작 ===');
+    showDebugLog('=== 앱 초기화 시작 ===');
     
     try {
         // 카카오페이 SDK 초기화
@@ -413,7 +414,15 @@ function showDebugLog(message) {
                          window.location.hostname.startsWith('10.') ||
                          window.location.hostname.startsWith('172.');
     
+    // 디버그 정보 표시
+    console.log('🔍 디버그 로그 호출:', {
+        hostname: window.location.hostname,
+        isDevelopment: isDevelopment,
+        message: message
+    });
+    
     if (!isDevelopment) {
+        console.log('❌ 프로덕션 환경이므로 디버그 로그 숨김');
         return; // 프로덕션 환경에서는 표시하지 않음
     }
     
@@ -459,6 +468,8 @@ function showDebugLog(message) {
 async function restoreAppState() {
     console.log('=== 앱 상태 복원 시작 ===');
     console.log('카카오톡 환경:', isKakaoTalkBrowser());
+    showDebugLog('=== 앱 상태 복원 시작 ===');
+    showDebugLog('카카오톡 환경: ' + isKakaoTalkBrowser());
     
     try {
         // 저장된 단계 복원
@@ -849,10 +860,13 @@ async function loadAnalysisFromServer() {
 // 앱 상태 저장 (하이브리드 방식)
 async function saveAppState() {
     console.log('=== 앱 상태 저장 시작 ===');
+    showDebugLog('=== 앱 상태 저장 시작 ===');
+    showDebugLog(`[SAVE] 현재 단계 저장 시도: ${currentStep}`);
     
     try {
         // 현재 단계 저장
         sessionStorage.setItem('beautyAI_currentStep', currentStep.toString());
+        showDebugLog(`[SAVE] 단계 저장 완료: ${currentStep}`);
         
         // 이미지들 데이터 저장 (압축된 버전)
         if (uploadedImages && (uploadedImages.front || uploadedImages['45'] || uploadedImages['90'])) {
@@ -1340,7 +1354,9 @@ async function nextStep() {
         // 1단계에서 2단계로 이동할 때
         if (currentStep === 1) {
             console.log('1단계에서 2단계로 이동 시작');
+            const oldStep = currentStep;
             currentStep++;
+            showDebugLog(`[NEXT] 단계 전환: ${oldStep} → ${currentStep}`);
             console.log('currentStep 업데이트됨:', currentStep);
             updateProgressSteps();
             showCurrentStep();
@@ -1357,7 +1373,9 @@ async function nextStep() {
                 return;
             }
             
+            const oldStep = currentStep;
             currentStep++;
+            showDebugLog(`[NEXT] 단계 전환: ${oldStep} → ${currentStep}`);
             updateProgressSteps();
             showCurrentStep();
             
@@ -1375,7 +1393,9 @@ async function nextStep() {
             }
             
             // 4단계로 이동
+            const oldStep = currentStep;
             currentStep++;
+            showDebugLog(`[NEXT] 단계 전환: ${oldStep} → ${currentStep}`);
             updateProgressSteps();
             showCurrentStep();
             
