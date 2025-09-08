@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Better me</title>
-    <link rel="stylesheet" href="styles.css?v=17">
+    <title>Better Me</title>
+    <link rel="stylesheet" href="styles.css?v=18">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -15,7 +15,7 @@
     <!-- 헤더 -->
     <header class="header">
         <div class="logo-container">
-            <img src="better-me-logo.png" alt="Better me" class="main-logo">
+            <img src="better-me-logo.png" alt="Better Me" class="main-logo">
         </div>
     </header>
 
@@ -29,27 +29,23 @@
                 </div>
                 <div class="step" data-step="2">
                     <div class="step-number">2</div>
-                    <div class="step-label">결제</div>
+                    <div class="step-label">사진 업로드</div>
                 </div>
                 <div class="step" data-step="3">
                     <div class="step-number">3</div>
-                    <div class="step-label">사진 업로드</div>
+                    <div class="step-label">AI 분석</div>
                 </div>
                 <div class="step" data-step="4">
                     <div class="step-number">4</div>
-                    <div class="step-label">AI 분석</div>
-                </div>
-                <div class="step" data-step="5">
-                    <div class="step-number">5</div>
                     <div class="step-label">피드백 제공</div>
                 </div>
             </div>
 
             <!-- 단계별 컨텐츠 -->
             <div class="step-content">
-                <!-- 1단계: Better me 서비스 이용 약관 -->
+                <!-- 1단계: Better Me 서비스 이용 약관 -->
                 <div class="step-panel active" id="step-1">
-                    <h2>Better me<br>서비스 이용약관</h2>
+                    <h2>서비스 이용약관</h2>
                     <p class="terms-subtitle">*중요내용만 추려뒀어요!</p>
                     
                     <!-- 약관동의 체크박스 -->
@@ -83,146 +79,13 @@
                     </div>
                     
                     <div class="step-buttons-center">
-                        <button class="btn btn-primary" id="next-to-payment" onclick="nextStep()" disabled>다음 단계</button>
+                        <button class="btn btn-primary" id="next-step-2" onclick="nextStep()" disabled>다음 단계</button>
                     </div>
                 </div>
 
-                <!-- 2단계: 결제 -->
+
+                <!-- 2단계: 사진 업로드 -->
                 <div class="step-panel" id="step-2">
-                    <h2>결제</h2>
-                    <div class="payment-section">
-                        <div class="payment-info">
-                            <h3>AI 외모 진단 서비스</h3>
-                            <div class="service-details">
-                                <div class="service-item">
-                                    <i class="fas fa-robot"></i>
-                                    <span>AI 외모 분석</span>
-                                    <span class="price">₩1,500</span>
-                                </div>
-                                <div class="service-item total">
-                                    <i class="fas fa-calculator"></i>
-                                    <span>총 결제 금액</span>
-                                    <span class="price total-price">₩1,500</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="payment-methods">
-                            <h3>결제 방법 선택</h3>
-                            <div class="payment-options-grid">
-                                <div class="payment-option">
-                                    <input type="radio" id="kakao-pay" name="payment-method" value="kakao" checked onchange="togglePaymentForm()">
-                                    <label for="kakao-pay">
-                                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJTNi40NzcgMjIgMTIgMjJTMjIgMTcuNTIzIDIyIDEyUzE3LjUyMyAyIDEyIDJaTTEyIDIwQzcuNTg5IDIwIDQgMTYuNDExIDQgMTJTNy41ODkgNCAxMiA0UzIwIDcuNTg5IDIwIDEyUzE2LjQxMSAyMCAxMiAyMFoiIGZpbGw9IiMzRjUxRUEiLz4KPHBhdGggZD0iTTEyIDZDNy41ODkgNiA0IDkuNTg5IDQgMTRTNy41ODkgMjIgMTIgMjJTMjAgMTguNDExIDIwIDE0UzE2LjQxMSA2IDEyIDZaTTEyIDIwQzguNjg2IDIwIDYgMTcuMzE0IDYgMTRTOC42ODYgOCAxMiA4UzE4IDEwLjY4NiAxOCAxNFMxNS4zMTQgMjAgMTIgMjBaIiBmaWxsPSIjM0Y1MUVBIi8+Cjwvc3ZnPgo=" alt="카카오페이" class="payment-logo">
-                                        카카오페이
-                                    </label>
-                                </div>
-                                <div class="payment-option">
-                                    <input type="radio" id="naver-pay" name="payment-method" value="naver" onchange="togglePaymentForm()">
-                                    <label for="naver-pay">
-                                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJTNi40NzcgMjIgMTIgMjJTMjIgMTcuNTIzIDIyIDEyUzE3LjUyMyAyIDEyIDJaTTEyIDIwQzcuNTg5IDIwIDQgMTYuNDExIDQgMTJTNy41ODkgNCAxMiA0UzIwIDcuNTg5IDIwIDEyUzE2LjQxMSAyMCAxMiAyMFoiIGZpbGw9IiMwM0NBNzUiLz4KPHBhdGggZD0iTTEyIDZDNy41ODkgNiA0IDkuNTg5IDQgMTRTNy41ODkgMjIgMTIgMjJTMjAgMTguNDExIDIwIDE0UzE2LjQxMSA2IDEyIDZaTTEyIDIwQzguNjg2IDIwIDYgMTcuMzE0IDYgMTRTOC42ODYgOCAxMiA4UzE4IDEwLjY4NiAxOCAxNFMxNS4zMTQgMjAgMTIgMjBaIiBmaWxsPSIjMDNDQTc1Ii8+Cjwvc3ZnPgo=" alt="네이버페이" class="payment-logo">
-                                        네이버페이
-                                    </label>
-                                </div>
-                                <div class="payment-option">
-                                    <input type="radio" id="toss-pay" name="payment-method" value="toss" onchange="togglePaymentForm()">
-                                    <label for="toss-pay">
-                                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJTNi40NzcgMjIgMTIgMjJTMjIgMTcuNTIzIDIyIDEyUzE3LjUyMyAyIDEyIDJaTTEyIDIwQzcuNTg5IDIwIDQgMTYuNDExIDQgMTJTNy41ODkgNCAxMiA0UzIwIDcuNTg5IDIwIDEyUzE2LjQxMSAyMCAxMiAyMFoiIGZpbGw9IiMwMDQ0RkYiLz4KPHBhdGggZD0iTTEyIDZDNy41ODkgNiA0IDkuNTg5IDQgMTRTNy41ODkgMjIgMTIgMjJTMjAgMTguNDExIDIwIDE0UzE2LjQxMSA2IDEyIDZaTTEyIDIwQzguNjg2IDIwIDYgMTcuMzE0IDYgMTRTOC42ODYgOCAxMiA4UzE4IDEwLjY4NiAxOCAxNFMxNS4zMTQgMjAgMTIgMjBaIiBmaWxsPSIjMDA0NEZGIi8+Cjwvc3ZnPgo=" alt="토스페이" class="payment-logo">
-                                        토스페이
-                                    </label>
-                                </div>
-                                <div class="payment-option">
-                                    <input type="radio" id="card-payment" name="payment-method" value="card" onchange="togglePaymentForm()">
-                                    <label for="card-payment">
-                                        <i class="fas fa-credit-card"></i>
-                                        신용카드/체크카드
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- 카카오페이 폼 -->
-                        <div class="payment-form" id="kakao-payment-form">
-                            <h3>카카오페이 결제</h3>
-                            <div class="payment-info-card">
-                                <p>카카오페이로 안전하게 결제하세요</p>
-                                <div class="payment-summary">
-                                    <p><strong>결제 금액:</strong> ₩1,500</p>
-                                    <p><strong>결제 수단:</strong> 카카오페이</p>
-                                </div>
-                                <button class="btn btn-primary payment-btn" onclick="processKakaoPayment()">
-                                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJTNi40NzcgMjIgMTIgMjJTMjIgMTcuNTIzIDIyIDEyUzE3LjUyMyAyIDEyIDJaTTEyIDIwQzcuNTg5IDIwIDQgMTYuNDExIDQgMTJTNy41ODkgNCAxMiA0UzIwIDcuNTg5IDIwIDEyUzE2LjQxMSAyMCAxMiAyMFoiIGZpbGw9IiMzRjUxRUEiLz4KPC9zdmc+Cg==" alt="카카오페이" class="btn-logo">
-                                    카카오페이로 결제하기
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- 네이버페이 폼 -->
-                        <div class="payment-form" id="naver-payment-form" style="display: none;">
-                            <h3>네이버페이 결제</h3>
-                            <div class="payment-info-card">
-                                <p>네이버페이로 안전하게 결제하세요</p>
-                                <div class="payment-summary">
-                                    <p><strong>결제 금액:</strong> ₩1,500</p>
-                                    <p><strong>결제 수단:</strong> 네이버페이</p>
-                                </div>
-                                <button class="btn btn-primary payment-btn" onclick="processNaverPayment()">
-                                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJTNi40NzcgMjIgMTIgMjJTMjIgMTcuNTIzIDIyIDEyUzE3LjUyMyAyIDEyIDJaTTEyIDIwQzcuNTg5IDIwIDQgMTYuNDExIDQgMTJTNy41ODkgNCAxMiA0UzIwIDcuNTg5IDIwIDEyUzE2LjQxMSAyMCAxMiAyMFoiIGZpbGw9IiMwM0NBNzUiLz4KPC9zdmc+Cg==" alt="네이버페이" class="btn-logo">
-                                    네이버페이로 결제하기
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- 토스페이 폼 -->
-                        <div class="payment-form" id="toss-payment-form" style="display: none;">
-                            <h3>토스페이 결제</h3>
-                            <div class="payment-info-card">
-                                <p>토스페이로 안전하게 결제하세요</p>
-                                <div class="payment-summary">
-                                    <p><strong>결제 금액:</strong> ₩1,500</p>
-                                    <p><strong>결제 수단:</strong> 토스페이</p>
-                                </div>
-                                <button class="btn btn-primary payment-btn" onclick="processTossPayment()">
-                                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJTNi40NzcgMjIgMTIgMjJTMjIgMTcuNTIzIDIyIDEyUzE3LjUyMyAyIDEyIDJaTTEyIDIwQzcuNTg5IDIwIDQgMTYuNDExIDQgMTJTNy41ODkgNCAxMiA0UzIwIDcuNTg5IDIwIDEyUzE2LjQxMSAyMCAxMiAyMFoiIGZpbGw9IiMwMDQ0RkYiLz4KPC9zdmc+Cg==" alt="토스페이" class="btn-logo">
-                                    토스페이로 결제하기
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- 카드 결제 폼 -->
-                        <div class="payment-form" id="card-payment-form" style="display: none;">
-                            <h3>카드 정보 입력</h3>
-                            <div class="form-group">
-                                <label for="card-number">카드 번호</label>
-                                <input type="text" id="card-number" placeholder="1234-5678-9012-3456" maxlength="19" oninput="formatCardNumber(this)">
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="expiry-date">만료일</label>
-                                    <input type="text" id="expiry-date" placeholder="MM/YY" maxlength="5" oninput="formatExpiryDate(this)">
-                                </div>
-                                <div class="form-group">
-                                    <label for="cvv">CVV</label>
-                                    <input type="text" id="cvv" placeholder="123" maxlength="3" oninput="formatCVV(this)">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="card-holder">카드 소유자명</label>
-                                <input type="text" id="card-holder" placeholder="홍길동">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="step-buttons">
-                        <button class="btn btn-secondary" onclick="prevStep()">이전 단계</button>
-                        <button class="btn btn-primary" onclick="processPayment()" id="payment-button">
-                            <i class="fas fa-credit-card"></i> 결제하기
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 3단계: 사진 업로드 -->
-                <div class="step-panel" id="step-3">
                     <h2>사진 업로드</h2>
                     
                     <div class="upload-requirements">
@@ -286,8 +149,8 @@
                     </div>
                 </div>
 
-                <!-- 4단계: AI 분석 로딩 -->
-                <div class="step-panel" id="step-4">
+                <!-- 3단계: AI 분석 로딩 -->
+                <div class="step-panel" id="step-3">
                     <h2>AI가 이미지를 분석하고 있습니다...</h2>
                     <div class="loading-page">
                         <div class="loading-content">
@@ -311,7 +174,7 @@
                 </div>
 
                         <!-- 5단계: 피드백 제공 -->
-        <div class="step-panel" id="step-5">
+        <div class="step-panel" id="step-4">
             <h2>얼굴분석 결과</h2>
             
             <!-- 업로드된 이미지들 표시 -->
@@ -320,15 +183,15 @@
                 <div class="analysis-images-grid">
                     <div class="analysis-image-item">
                         <h4><i class="fas fa-user"></i> 정면 사진</h4>
-                        <img id="step5-uploaded-image-front" src="" alt="정면 사진" class="analysis-image">
+                        <img id="step4-uploaded-image-front" src="" alt="정면 사진" class="analysis-image">
                     </div>
                     <div class="analysis-image-item">
                         <h4><i class="fas fa-user-friends"></i> 45도 측면 사진</h4>
-                        <img id="step5-uploaded-image-45" src="" alt="45도 측면 사진" class="analysis-image">
+                        <img id="step4-uploaded-image-45" src="" alt="45도 측면 사진" class="analysis-image">
                     </div>
                     <div class="analysis-image-item">
                         <h4><i class="fas fa-user-secret"></i> 90도 측면 사진</h4>
-                        <img id="step5-uploaded-image-90" src="" alt="90도 측면 사진" class="analysis-image">
+                        <img id="step4-uploaded-image-90" src="" alt="90도 측면 사진" class="analysis-image">
                     </div>
                 </div>
             </div>
@@ -359,7 +222,7 @@
 
     <!-- 푸터 -->
     <footer class="footer">
-        <p>&copy; Better me 개인정보는 이용 후 바로 삭제됩니다.</p>
+        <p>&copy; Better Me 개인정보는 이용 후 바로 삭제됩니다.</p>
     </footer>
 
     <!-- 로딩 모달 -->
@@ -375,6 +238,7 @@
     
     <script src="script.js"></script>
     <script>
+        
         // 디버깅을 위한 콘솔 로그
         console.log('Better U 앱이 로드되었습니다.');
         console.log('현재 단계:', 1);

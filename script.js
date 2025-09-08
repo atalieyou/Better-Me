@@ -24,10 +24,15 @@ let sessionId = null;
 let isWebSocketConnected = false;
 
 // DOM이 로드된 후 실행
+console.log('🔥 script.js 파일이 로드되었습니다!');
+
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('DOM이 로드되었습니다. 앱을 초기화합니다...');
+    console.log('🚀 DOM이 로드되었습니다. 앱을 초기화합니다...');
+    console.log('🚀 initializeApp 호출 시작');
+    
     try {
         await initializeApp();
+        console.log('🚀 initializeApp 호출 완료');
         setupRealTimeValidation();
         checkUrlHash();
         console.log('앱 초기화 완료');
@@ -35,6 +40,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.error('앱 초기화 중 오류 발생:', error);
     }
 });
+
+// 즉시 실행되는 로그
+console.log('🔥 script.js 즉시 실행 로그 - DOMContentLoaded 이벤트 리스너 등록됨');
 
 // URL 해시 확인하여 1단계로 이동
 function checkUrlHash() {
@@ -51,7 +59,7 @@ function setupRealTimeValidation() {
         document.getElementById('privacy-transfer')
     ];
     
-    const nextButton = document.getElementById('next-to-payment');
+    const nextButton = document.getElementById('next-step-2');
     
     function validateTerms() {
         const allChecked = checkboxes.every(checkbox => checkbox && checkbox.checked);
@@ -197,12 +205,12 @@ function handleAnalysisComplete(result) {
         // 분석 결과를 화면에 표시
         displayFullAIResponse(analysisResults);
         
-        // 4단계에서 5단계로 자동 이동
+        // 3단계에서 4단계로 자동 이동
         const oldStep = currentStep;
-        currentStep = 5;
+        currentStep = 4;
         showDebugLog(`[AUTO] 단계 전환: ${oldStep} → ${currentStep}`);
         updateProgressSteps();
-        showCurrentStep();
+        showStep(4);  // showCurrentStep() 대신 showStep(4) 호출
         saveAppState();
         
         // 사용자에게 알림
@@ -240,10 +248,13 @@ async function initializeApp() {
         checkPaymentStatus();
         
         // 세션 스토리지에서 이전 상태 복원
+        console.log('🔄 restoreAppState 호출 시작');
         await restoreAppState();
+        console.log('🔄 restoreAppState 호출 완료');
         
         setupEventListeners();
         console.log('이벤트 리스너 설정 완료');
+        
         
         // WebSocket 연결 설정
         setupWebSocket();
@@ -254,8 +265,7 @@ async function initializeApp() {
         // 현재 단계 표시
         showCurrentStep();
         
-        // 결제 폼 초기화
-        togglePaymentForm();
+        // 결제 폼 초기화 (결제 단계 삭제로 인해 제거됨)
         
         // 페이지 가시성 변경 감지 설정
         setupVisibilityChangeDetection();
@@ -361,15 +371,16 @@ async function loadSharedResult(resultId) {
             
             // 결과 데이터 설정
             analysisResults = { raw_analysis: result.result.analysisResult };
+            try { sessionStorage.setItem('beautyAI_analysisResults', JSON.stringify(analysisResults)); } catch (e) { console.error('sessionStorage 저장 실패:', e); }
             
             // 이미지 데이터 설정 (base64 데이터가 있는 경우)
             if (result.result.uploadedImages) {
                 uploadedImages = result.result.uploadedImages;
             }
             
-            // 5단계로 이동하여 결과 표시
+            // 4단계로 이동하여 결과 표시
             const oldStep = currentStep;
-            currentStep = 5;
+            currentStep = 4;
             showDebugLog(`[AUTO] 단계 전환: ${oldStep} → ${currentStep}`);
             updateProgressSteps();
             showCurrentStep();
@@ -414,12 +425,6 @@ function showDebugLog(message) {
     // 디버그 로그 비활성화 - 콘솔에만 출력
     console.log('🔍 디버그:', message);
     
-    // 모바일에서 중요한 로그만 alert로 표시
-    if (message.includes('5단계에서 새로고침됨') || 
-        message.includes('서버 로드 결과: 실패') ||
-        message.includes('서버에서 분석 결과를 찾을 수 없습니다')) {
-        alert('🔍 ' + message);
-    }
     return;
 }
 
@@ -433,9 +438,14 @@ async function restoreAppState() {
     try {
         // 저장된 단계 복원
         const savedStep = sessionStorage.getItem('beautyAI_currentStep');
+        console.log('🔍 저장된 단계 (savedStep):', savedStep);
+        console.log('🔍 savedStep 타입:', typeof savedStep);
+        
+        
         if (savedStep) {
             const step = parseInt(savedStep);
-            console.log('저장된 단계 복원:', step);
+            console.log('🔍 파싱된 단계 (step):', step);
+            console.log('🔍 step 타입:', typeof step);
             
                     // 단계별 새로고침 처리
         if (step === 2) {
@@ -449,105 +459,118 @@ async function restoreAppState() {
             currentStep = step;  // ✅ 3단계 유지
             // 이미지 데이터는 그대로 유지
         } else if (step === 4) {
-            console.log('4단계에서 새로고침됨. 3단계로 이동합니다.');
-            currentStep = 3;  // ✅ 4단계는 3단계로 이동
-            sessionStorage.setItem('beautyAI_currentStep', '3');
-            // 업로드된 이미지들은 유지 (3단계에서 필요)
-            // uploadedImages 초기화하지 않음
-        } else if (step === 5) {
-            console.log('=== 5단계에서 새로고침됨 ===');
-            console.log('서버에서 분석 결과 확인 중...');
+            console.log('4단계에서 새로고침됨. 4단계 유지 (분석 완료된 상태)');
+            currentStep = step;  // ✅ 4단계 유지
             
-            // 모바일 디버깅을 위한 화면 로그 표시
-            showDebugLog('=== 5단계에서 새로고침됨 ===');
-            showDebugLog('서버에서 분석 결과 확인 중...');
-            
-            // 서버에서 분석 결과 로드 시도
-            const serverResult = await loadAnalysisFromServer();
-            console.log('서버 로드 결과:', serverResult);
-            showDebugLog('서버 로드 결과: ' + (serverResult ? '성공' : '실패'));
-            
-            if (serverResult) {
-                console.log('✅ 서버에서 분석 결과 복원 성공:', serverResult);
-                showDebugLog('✅ 서버에서 분석 결과 복원 성공');
-                
-                // 분석 결과 복원
-                analysisResults = { raw_analysis: serverResult.analysisResult };
-                
-                // 이미지 데이터 복원
-                if (serverResult.uploadedImages) {
-                    uploadedImages = serverResult.uploadedImages;
-                }
-                
-                console.log('✅ 분석 결과 유효. 5단계 유지');
-                showDebugLog('✅ 분석 결과 유효. 5단계 유지');
-                currentStep = step;
-            } else {
-                // 서버에서 로드 실패 시 sessionStorage 폴백 시도
-                console.log('❌ 서버 로드 실패, sessionStorage 폴백 시도...');
-                showDebugLog('❌ 서버 로드 실패, sessionStorage 폴백 시도...');
-                const savedAnalysis = sessionStorage.getItem('beautyAI_analysisResults');
-                console.log('sessionStorage 분석 결과:', savedAnalysis ? '있음' : '없음');
-                showDebugLog('sessionStorage 분석 결과: ' + (savedAnalysis ? '있음' : '없음'));
-                
-                if (savedAnalysis) {
-                    try {
-                        analysisResults = JSON.parse(savedAnalysis);
-                        console.log('✅ sessionStorage에서 분석 결과 복원 성공');
-                        
-                        if (analysisResults && analysisResults.raw_analysis) {
-                            console.log('✅ 분석 결과 유효. 5단계 유지');
-                            currentStep = step;
-                        } else {
-                            console.log('❌ 분석 결과가 유효하지 않음. 3단계로 이동');
-                            currentStep = 3;
-                            sessionStorage.setItem('beautyAI_currentStep', '3');
-                        }
-                    } catch (e) {
-                        console.error('❌ 분석 결과 파싱 실패:', e);
-                        console.log('❌ 분석 결과 없음. 3단계로 이동');
-                        currentStep = 3;
-                        sessionStorage.setItem('beautyAI_currentStep', '3');
-                    }
-                } else {
-                    console.log('❌ 분석 결과 없음. 3단계로 이동');
-                    currentStep = 3;
-                    sessionStorage.setItem('beautyAI_currentStep', '3');
-                }
-            }
         } else {
             currentStep = step;
+            
         }
         }
         
-        // 저장된 이미지들 복원
-        const savedImages = sessionStorage.getItem('beautyAI_uploadedImages');
-        if (savedImages) {
-            try {
-                uploadedImages = JSON.parse(savedImages);
-                console.log('저장된 이미지들 복원 완료:', Object.keys(uploadedImages));
-            } catch (e) {
-                console.error('이미지 데이터 파싱 실패:', e);
+        // 서버에서 분석 결과 로드 시도 (모든 경우에 시도)
+        let serverResult = null;
+        console.log('🔍 서버에서 분석 결과 로드 시도 중...');
+        serverResult = await loadAnalysisFromServer();
+        console.log('🔍 서버 로드 결과:', serverResult);
+        
+        if (serverResult) {
+            console.log('🔍 서버 결과 상세:', {
+                hasAnalysisResult: !!serverResult.analysisResult,
+                analysisResultLength: serverResult.analysisResult ? serverResult.analysisResult.length : 0,
+                hasUploadedImages: !!serverResult.uploadedImages,
+                currentStep: serverResult.currentStep
+            });
+            
+            analysisResults = { raw_analysis: serverResult.analysisResult };
+            try { sessionStorage.setItem('beautyAI_analysisResults', JSON.stringify(analysisResults)); } catch (e) { console.error('sessionStorage 저장 실패:', e); }
+            if (serverResult.uploadedImages) {
+                uploadedImages = serverResult.uploadedImages;
+            }
+            // 서버에서 currentStep도 복원
+            if (serverResult.currentStep) {
+                // 서버에서 4를 반환했거나, 분석 결과가 있으면 4로 설정
+                if (serverResult.currentStep === 4 || serverResult.analysisResult) {
+                    currentStep = 4;
+                    console.log('✅ 서버에서 currentStep 4로 설정 (분석 완료)');
+                } else {
+                    currentStep = serverResult.currentStep;
+                    console.log('✅ 서버에서 currentStep 복원:', currentStep);
+                }
+            }
+            console.log('✅ 서버에서 분석 결과 복원 성공');
+            console.log('🔍 복원된 analysisResults:', analysisResults);
+        } else {
+            console.log('❌ 서버에서 로드 실패, sessionStorage에서 복원 시도');
+            // 서버에서 로드 실패 시 sessionStorage에서 복원
+            const savedAnalysis = sessionStorage.getItem('beautyAI_analysisResults');
+            console.log('저장된 분석 결과 확인:', savedAnalysis ? '있음' : '없음');
+            if (savedAnalysis) {
+                try {
+                    analysisResults = JSON.parse(savedAnalysis);
+                    console.log('✅ sessionStorage에서 분석 결과 복원 성공');
+                    console.log('🔍 복원된 analysisResults:', analysisResults);
+                } catch (e) {
+                    console.error('❌ 분석 결과 파싱 실패:', e);
+                }
+            } else {
+                console.log('❌ 저장된 분석 결과가 없습니다');
+            }
+            
+            // 서버 로드 실패 시에만 sessionStorage에서 이미지 복원
+            const savedImages = sessionStorage.getItem('beautyAI_uploadedImages');
+            if (savedImages) {
+                try {
+                    uploadedImages = JSON.parse(savedImages);
+                    console.log('저장된 이미지들 복원 완료:', Object.keys(uploadedImages));
+                } catch (e) {
+                    console.error('이미지 데이터 파싱 실패:', e);
+                    uploadedImages = { front: null, '45': null, '90': null };
+                }
+            } else {
                 uploadedImages = { front: null, '45': null, '90': null };
             }
-        } else {
-            uploadedImages = { front: null, '45': null, '90': null };
         }
         
-        // 저장된 분석 결과 복원
-        const savedAnalysis = sessionStorage.getItem('beautyAI_analysisResults');
-        console.log('저장된 분석 결과 확인:', savedAnalysis ? '있음' : '없음');
-        if (savedAnalysis) {
-            try {
-                analysisResults = JSON.parse(savedAnalysis);
-                console.log('저장된 분석 결과 복원 완료:', analysisResults);
-            } catch (e) {
-                console.error('분석 결과 파싱 실패:', e);
+        // 4단계인 경우 추가로 sessionStorage에서도 복원 시도 (서버 로드 실패 시 대비)
+        if (savedStep === '4' && (!analysisResults || !analysisResults.raw_analysis)) {
+            console.log('🔍 4단계에서 분석 결과 없음 - sessionStorage에서 추가 복원 시도');
+            const savedAnalysis = sessionStorage.getItem('beautyAI_analysisResults');
+            if (savedAnalysis) {
+                try {
+                    analysisResults = JSON.parse(savedAnalysis);
+                    console.log('✅ 4단계에서 sessionStorage에서 분석 결과 복원 성공');
+                    console.log('🔍 복원된 analysisResults:', analysisResults);
+                } catch (e) {
+                    console.error('❌ 4단계에서 분석 결과 파싱 실패:', e);
+                }
             }
-        } else {
-            console.log('저장된 분석 결과가 없습니다');
         }
         
+        // 4단계에서 새로고침한 경우 추가 처리 없음 (서버에서 이미 로드됨)
+        
+        // 4단계에서 새로고침한 경우 - 분석 결과 재검증 없이 4단계 유지
+        console.log('🔍 4단계 조건 확인: savedStep =', savedStep, ', currentStep =', currentStep);
+        console.log('🔍 조건1: savedStep === "4" =', savedStep === '4');
+        console.log('🔍 조건2: currentStep === 4 =', currentStep === 4);
+        console.log('🔍 조건3: savedStep === "4" || currentStep === 4 =', savedStep === '4' || currentStep === 4);
+        
+        
+        if (savedStep === '4') {
+            console.log('✅ 4단계에서 새로고침 - 4단계 유지 (분석 완료된 상태)');
+            
+            
+            // 서버 로드 완료 후 4단계 UI 표시
+            console.log('🔍 showStep(4) 호출 시작 (서버 로드 후)');
+            showStep(4);
+            console.log('🔍 showStep(4) 호출 완료');
+            
+        } else {
+            
+            // 4단계가 아닌 경우에만 updateUIAfterRestore 호출
+            updateUIAfterRestore();
+            console.log('🔍 updateUIAfterRestore 호출 완료');
+        }
         
         console.log('=== 앱 상태 복원 완료 ===');
         console.log('복원된 상태:', {
@@ -555,9 +578,6 @@ async function restoreAppState() {
             hasImages: !!uploadedImages,
             hasAnalysis: !!analysisResults,
         });
-        
-        // 상태 복원 후 UI 업데이트
-        updateUIAfterRestore();
         
 
         
@@ -570,12 +590,21 @@ async function restoreAppState() {
 }
 
 // 단계별 UI 표시 함수
-function showStep(step) {
-    console.log(`=== showStep 함수 호출: 단계 ${step} ===`);
+    function showStep(step) {
+        console.log(`=== showStep 함수 호출: 단계 ${step} ===`);
+        console.log('🔍 showStep - step 타입:', typeof step);
+        console.log('🔍 showStep - step 값:', step);
+        console.log('🔍 showStep - currentStep:', currentStep);
+        
+        // currentStep 업데이트 (중요!)
+        currentStep = step;
+        sessionStorage.setItem('beautyAI_currentStep', step.toString());
+        console.log('🔍 currentStep 업데이트 완료:', currentStep);
     
     try {
         // 모든 단계 패널 숨기기
         const allSteps = document.querySelectorAll('.step-panel');
+        console.log('🔍 찾은 step-panel 개수:', allSteps.length);
         allSteps.forEach(stepPanel => {
             stepPanel.classList.remove('active');
         });
@@ -589,19 +618,39 @@ function showStep(step) {
         // 현재 단계 패널 표시
         const currentStepPanel = document.getElementById(`step-${step}`);
         if (currentStepPanel) {
-            currentStepPanel.classList.add('active');
+                currentStepPanel.classList.add('active');
             console.log(`단계 ${step} 패널 활성화 완료`);
             
-            // 5단계인 경우 분석 결과 검증 (restoreAppState에서 이미 검증했으므로 제거)
-            // if (step === 5) {
-            //     if (!analysisResults || !analysisResults.raw_analysis) {
-            //         console.log('5단계에서 분석 결과 없음. 3단계로 이동');
-            //         currentStep = 3;
-            //         sessionStorage.setItem('beautyAI_currentStep', '3');
-            //         showStep(3);
-            //         return;
-            //     }
-            // }
+            // 4단계인 경우 분석 결과 및 이미지 표시
+            if (step === 4) {
+                console.log('🔍 4단계 UI 표시 - 분석 결과와 이미지 표시');
+                console.log('🔍 analysisResults 존재:', !!analysisResults);
+                console.log('🔍 analysisResults.raw_analysis 존재:', !!(analysisResults && analysisResults.raw_analysis));
+                console.log('🔍 uploadedImages 존재:', !!uploadedImages);
+                
+                // 4단계 UI 표시 - 분석 결과가 있으면 표시
+                if (analysisResults && analysisResults.raw_analysis) {
+                    console.log('🔍 4단계에서 분석 결과 표시 시작');
+                    displayFullAIResponse(analysisResults);
+                    console.log('🔍 4단계에서 분석 결과 표시 완료');
+                } else {
+                    console.log('🔍 4단계에서 분석 결과 없음 - 로딩 메시지 표시');
+                    // 분석 결과가 없을 때 로딩 메시지 표시
+                    const analysisContent = document.getElementById('complete-analysis-content');
+                    if (analysisContent) {
+                        analysisContent.innerHTML = '<div class="loading-message">분석 결과를 불러오는 중...</div>';
+                    }
+                }
+                
+                // 이미지 표시 (분석 결과와 관계없이)
+                if (uploadedImages) {
+                    console.log('🔍 4단계에서 이미지 표시 시작');
+                    displayStep4Images();
+                    console.log('🔍 4단계에서 이미지 표시 완료');
+                } else {
+                    console.log('🔍 4단계에서 이미지 없음');
+                }
+            }
         } else {
             console.error(`단계 ${step} 패널을 찾을 수 없습니다`);
         }
@@ -625,6 +674,10 @@ function showStep(step) {
 let isUIUpdating = false; // 중복 호출 방지 플래그
 
 function updateUIAfterRestore() {
+    console.log('🔍 updateUIAfterRestore 함수 호출됨');
+    console.log('🔍 isUIUpdating:', isUIUpdating);
+    console.log('🔍 currentStep:', currentStep);
+    
     if (isUIUpdating) {
         console.log('=== UI 업데이트 중복 호출 방지 ===');
         return;
@@ -635,6 +688,7 @@ function updateUIAfterRestore() {
     
     try {
         // 현재 단계에 맞는 UI 표시
+        console.log('🔍 showStep 호출: currentStep =', currentStep);
         showStep(currentStep);
         
         // 현재 단계에 맞는 이벤트 리스너 설정
@@ -647,20 +701,24 @@ function updateUIAfterRestore() {
         
         // 현재 단계가 3 이상일 때만 이미지 관련 UI 표시
         if (currentStep >= 3) {
-            // 이미지가 있다면 이미지 표시 (기존 함수 활용)
-        if (uploadedImages && (uploadedImages.front || uploadedImages['45'] || uploadedImages['90'])) {
-                if (uploadedImages.front) displayUploadedImage('front');
-                if (uploadedImages['45']) displayUploadedImage('45');
-                if (uploadedImages['90']) displayUploadedImage('90');
-        }
-        
-                    // 분석 결과가 있다면 표시
-            if (analysisResults) {
-                displayFullAIResponse(analysisResults);
-                // 상태 저장 추가
-                saveAppState();
+            // 4단계인 경우 showStep(4)에서 이미 처리되므로 추가 처리 불필요
+            if (currentStep === 4) {
+                console.log('4단계 UI 복원 - showStep(4)에서 이미 처리됨');
+            } else {
+                // 3단계인 경우 기존 로직
+                if (uploadedImages && (uploadedImages.front || uploadedImages['45'] || uploadedImages['90'])) {
+                    if (uploadedImages.front) displayUploadedImage('front');
+                    if (uploadedImages['45']) displayUploadedImage('45');
+                    if (uploadedImages['90']) displayUploadedImage('90');
+                }
+                
+                // 분석 결과가 있다면 표시
+                if (analysisResults) {
+                    displayFullAIResponse(analysisResults);
+                    // 상태 저장 추가
+                    saveAppState();
+                }
             }
-            
         } else {
             console.log(`현재 단계 ${currentStep}에서는 이미지 관련 UI 표시 불필요`);
         }
@@ -701,10 +759,15 @@ async function saveAnalysisToServer() {
             imageDataForStorage['90'] = { dataUrl: uploadedImages['90'].dataUrl };
         }
 
+        
+        // 4단계에서 저장할 때는 currentStep을 4로 강제 설정
+        const stepToSave = currentStep === 4 ? 4 : currentStep;
+        
+        
         console.log('📤 저장할 데이터:', {
             hasAnalysis: !!analysisResults.raw_analysis,
             hasImages: Object.keys(imageDataForStorage).length,
-            currentStep: currentStep
+            currentStep: stepToSave
         });
 
         // 타임아웃 설정 (10초)
@@ -722,7 +785,7 @@ async function saveAnalysisToServer() {
             body: JSON.stringify({
                 analysisResult: analysisResults.raw_analysis,
                 uploadedImages: imageDataForStorage,
-                currentStep: currentStep
+                currentStep: stepToSave
             }),
             signal: controller.signal
         });
@@ -738,9 +801,11 @@ async function saveAnalysisToServer() {
         const result = await response.json();
         console.log('✅ 서버에 분석 결과 저장 완료:', result);
         
-        // 결과 ID를 sessionStorage에 저장
-        sessionStorage.setItem('beautyAI_serverResultId', result.resultId);
+        // 결과 ID를 sessionStorage에 저장 (키 이름 변경)
+        sessionStorage.setItem('beautyAI_resultId', result.resultId);
         console.log('💾 서버 결과 ID 저장됨:', result.resultId);
+        console.log('🔍 저장 후 sessionStorage 확인:', sessionStorage.getItem('beautyAI_resultId'));
+        
         
         // 저장 후 즉시 검증
         const verifyResponse = await fetch(`${getApiBaseUrl()}/api/get-analysis-result-server/${result.resultId}`);
@@ -764,9 +829,15 @@ async function saveAnalysisToServer() {
 
 // 서버에서 분석 결과 로드
 async function loadAnalysisFromServer() {
+    console.log('🔍 loadAnalysisFromServer 함수 시작');
     try {
-        const resultId = sessionStorage.getItem('beautyAI_serverResultId');
+        console.log('🔍 sessionStorage 전체 내용:', Object.keys(sessionStorage));
+        console.log('🔍 sessionStorage 모든 값:', Object.keys(sessionStorage).map(key => `${key}: ${sessionStorage.getItem(key)}`));
+        const resultId = sessionStorage.getItem('beautyAI_resultId');
         console.log('🔍 서버 저장된 분석 결과 ID:', resultId);
+        console.log('🔍 resultId 타입:', typeof resultId);
+        console.log('🔍 resultId === null:', resultId === null);
+        console.log('🔍 resultId === undefined:', resultId === undefined);
         showDebugLog('🔍 서버 ID: ' + (resultId ? resultId.substring(0, 20) + '...' : '없음'));
         
         if (!resultId) {
@@ -780,13 +851,17 @@ async function loadAnalysisFromServer() {
             console.log('❌ 네트워크 연결이 없습니다. 서버 로드 건너뜀');
             return null;
         }
+        
+        console.log('🔍 네트워크 상태:', navigator.onLine);
+        console.log('🔍 API URL 구성:', `${getApiBaseUrl()}/api/get-analysis-result-server/${resultId}`);
+        
 
         console.log('🌐 서버에서 분석 결과 로드 시도 중...');
         console.log('📡 API URL:', `${getApiBaseUrl()}/api/get-analysis-result-server/${resultId}`);
 
-        // 타임아웃 설정 (5초)
+        // 타임아웃 설정 (15초) - 모바일 네트워크 지연 고려
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
         const response = await fetch(`${getApiBaseUrl()}/api/get-analysis-result-server/${resultId}`, {
             signal: controller.signal
@@ -800,11 +875,11 @@ async function loadAnalysisFromServer() {
             if (response.status === 404) {
                 console.log('❌ 서버에서 분석 결과를 찾을 수 없습니다');
                 showDebugLog('❌ 서버에서 분석 결과를 찾을 수 없습니다');
-                sessionStorage.removeItem('beautyAI_serverResultId');
+                sessionStorage.removeItem('beautyAI_resultId');
             } else if (response.status === 410) {
                 console.log('❌ 분석 결과가 만료되었습니다');
                 showDebugLog('❌ 분석 결과가 만료되었습니다');
-                sessionStorage.removeItem('beautyAI_serverResultId');
+                sessionStorage.removeItem('beautyAI_resultId');
             } else {
                 console.log(`❌ 서버 로드 실패: ${response.status}`);
                 showDebugLog(`❌ 서버 로드 실패: ${response.status}`);
@@ -815,10 +890,21 @@ async function loadAnalysisFromServer() {
 
         const result = await response.json();
         console.log('✅ 서버에서 분석 결과 로드 완료:', result);
+        console.log('🔍 서버 응답 데이터 구조:', {
+            hasResult: !!result.result,
+            hasAnalysisResult: !!result.result?.analysisResult,
+            hasUploadedImages: !!result.result?.uploadedImages,
+            resultKeys: Object.keys(result.result || {})
+        });
         
         return result.result;
         
     } catch (error) {
+        console.error('❌ 서버 로드 중 오류 발생:', error);
+        console.error('❌ 오류 타입:', error.name);
+        console.error('❌ 오류 메시지:', error.message);
+        
+        
         if (error.name === 'AbortError') {
             console.error('❌ 서버 로드 타임아웃:', error);
         } else {
@@ -843,10 +929,16 @@ async function saveAppState() {
     showDebugLog('=== 앱 상태 저장 시작 ===');
     showDebugLog(`[SAVE] 현재 단계 저장 시도: ${currentStep}`);
     
+    
     try {
-        // 현재 단계 저장
-        sessionStorage.setItem('beautyAI_currentStep', currentStep.toString());
-        showDebugLog(`[SAVE] 단계 저장 완료: ${currentStep}`);
+        // 4단계에서 저장할 때는 currentStep을 4로 강제 설정
+        if (currentStep === 4) {
+            sessionStorage.setItem('beautyAI_currentStep', '4');
+            showDebugLog(`[SAVE] 4단계에서 저장 - currentStep을 4로 강제 설정`);
+        } else {
+            sessionStorage.setItem('beautyAI_currentStep', currentStep.toString());
+            showDebugLog(`[SAVE] 단계 저장 완료: ${currentStep}`);
+        }
         
         // 이미지들 데이터 저장 (압축된 버전)
         if (uploadedImages && (uploadedImages.front || uploadedImages['45'] || uploadedImages['90'])) {
@@ -865,7 +957,7 @@ async function saveAppState() {
                 console.log('서버 저장 실패, sessionStorage에 폴백 저장');
                 // 폴백: sessionStorage에 저장 시도
                 try {
-                    sessionStorage.setItem('beautyAI_analysisResults', JSON.stringify(analysisResults));
+            sessionStorage.setItem('beautyAI_analysisResults', JSON.stringify(analysisResults));
                 } catch (e) {
                     console.error('sessionStorage 저장도 실패:', e);
                 }
@@ -975,66 +1067,111 @@ function setupImageUploadEventListeners() {
 function setupConsentValidation() {
     console.log('동의 체크박스 설정 시작...');
     
+    
     try {
-        const photoConsent = document.getElementById('photo-consent');
         const serviceTerms = document.getElementById('service-terms');
+        const privacyConsent = document.getElementById('privacy-consent');
+        const privacyTransfer = document.getElementById('privacy-transfer');
         
-        if (!photoConsent) {
-            throw new Error('photo-consent 요소를 찾을 수 없습니다');
-        }
+        console.log('체크박스 요소들 찾기 결과:', {
+            serviceTerms: !!serviceTerms,
+            privacyConsent: !!privacyConsent,
+            privacyTransfer: !!privacyTransfer
+        });
+        
         if (!serviceTerms) {
             throw new Error('service-terms 요소를 찾을 수 없습니다');
+        }
+        if (!privacyConsent) {
+            throw new Error('privacy-consent 요소를 찾을 수 없습니다');
+        }
+        if (!privacyTransfer) {
+            throw new Error('privacy-transfer 요소를 찾을 수 없습니다');
         }
         
         console.log('동의 체크박스 요소들 찾기 완료');
         
         // 실시간 유효성 검사
-        [photoConsent, serviceTerms].forEach(element => {
-            element.addEventListener('change', validateConsent);
+        [serviceTerms, privacyConsent, privacyTransfer].forEach(element => {
+            element.addEventListener('change', function() {
+                console.log('체크박스 클릭됨:', element.id);
+                console.log('체크박스 상태:', element.checked);
+                
+                
+                try {
+                    validateConsent();
+                } catch (error) {
+                    console.error('validateConsent 오류:', error);
+                    
+                }
+            });
         });
         
+        // 초기 유효성 검사 실행
+        validateConsent();
+        
         console.log('동의 체크박스 설정 완료');
+        
     } catch (error) {
         console.error('동의 체크박스 설정 중 오류:', error);
+        
+        
         throw error;
     }
 }
 
 // 사진 활용 동의 유효성 검사
 function validateConsent() {
-    const serviceTerms = document.getElementById('service-terms');
-    const privacyConsent = document.getElementById('privacy-consent');
-    const privacyTransfer = document.getElementById('privacy-transfer');
+    console.log('=== validateConsent 함수 호출 ===');
     
-    // 요소가 존재하는지 확인
-    if (!serviceTerms || !privacyConsent || !privacyTransfer) {
-        console.error('체크박스 요소를 찾을 수 없습니다:', {
+    try {
+        const serviceTerms = document.getElementById('service-terms');
+        const privacyConsent = document.getElementById('privacy-consent');
+        const privacyTransfer = document.getElementById('privacy-transfer');
+        const nextButton = document.getElementById('next-step-2');
+        
+        console.log('체크박스 요소들:', {
             serviceTerms: !!serviceTerms,
             privacyConsent: !!privacyConsent,
-            privacyTransfer: !!privacyTransfer
+            privacyTransfer: !!privacyTransfer,
+            nextButton: !!nextButton
         });
+        
+        // 요소가 존재하는지 확인
+        if (!serviceTerms || !privacyConsent || !privacyTransfer) {
+            console.error('체크박스 요소를 찾을 수 없습니다:', {
+                serviceTerms: !!serviceTerms,
+                privacyConsent: !!privacyConsent,
+                privacyTransfer: !!privacyTransfer
+            });
+            return false;
+        }
+        
+        const allChecked = serviceTerms.checked && privacyConsent.checked && privacyTransfer.checked;
+        
+        console.log('체크박스 상태:', {
+            serviceTerms: serviceTerms.checked,
+            privacyConsent: privacyConsent.checked,
+            privacyTransfer: privacyTransfer.checked,
+            allChecked: allChecked
+        });
+        
+        // 다음 단계 버튼 활성화/비활성화
+        if (nextButton) {
+            nextButton.disabled = !allChecked;
+            console.log('다음 단계 버튼 상태:', allChecked ? '활성화' : '비활성화');
+            
+        }
+        
+        return allChecked;
+    } catch (error) {
+        console.error('validateConsent 함수 오류:', error);
+        
         return false;
     }
-    
-    return serviceTerms.checked && privacyConsent.checked && privacyTransfer.checked;
 }
 
-// 결제 관련 함수들
-function processPayment() {
-    const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
-    
-    if (paymentMethod === 'kakao') {
-        processKakaoPayment();
-    } else if (paymentMethod === 'toss') {
-        processTossPayment();
-    } else if (paymentMethod === 'naver') {
-        processNaverPayment();
-    } else if (paymentMethod === 'card') {
-        if (validateCardPayment()) {
-            processCardPayment();
-        }
-    }
-}
+// 결제 관련 함수들 (결제 단계 삭제로 인해 제거됨)
 
 // 카카오페이 결제 처리
 function processKakaoPayment() {
@@ -1239,37 +1376,7 @@ function simulatePayment() {
     });
 }
 
-// 결제 방법 변경 시 폼 표시/숨김
-function togglePaymentForm() {
-    const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
-    
-    // 모든 결제 폼 숨김
-    document.getElementById('kakao-payment-form').style.display = 'none';
-    document.getElementById('toss-payment-form').style.display = 'none';
-    document.getElementById('naver-payment-form').style.display = 'none';
-    document.getElementById('card-payment-form').style.display = 'none';
-    
-    // 선택된 결제 방법에 따라 폼 표시
-    if (paymentMethod === 'kakao') {
-        document.getElementById('kakao-payment-form').style.display = 'block';
-    } else if (paymentMethod === 'toss') {
-        document.getElementById('toss-payment-form').style.display = 'block';
-    } else if (paymentMethod === 'naver') {
-        document.getElementById('naver-payment-form').style.display = 'block';
-    } else if (paymentMethod === 'card') {
-        document.getElementById('card-payment-form').style.display = 'block';
-        // 테스트용 샘플 데이터 자동 입력
-        fillTestCardData();
-    }
-}
-
-// 테스트용 카드 데이터 자동 입력
-function fillTestCardData() {
-    document.getElementById('card-number').value = '1234-5678-9012-3456';
-    document.getElementById('expiry-date').value = '12/25';
-    document.getElementById('cvv').value = '123';
-    document.getElementById('card-holder').value = '홍길동';
-}
+// 결제 관련 함수들 (결제 단계 삭제로 인해 제거됨)
 
 // 카드 번호 자동 포맷팅
 function formatCardNumber(input) {
@@ -1332,8 +1439,8 @@ async function nextStep() {
         return;
     }
     
-    if (currentStep < 5) {
-        // 1단계에서 2단계로 이동할 때
+    if (currentStep < 4) {
+        // 1단계에서 2단계로 이동할 때 (사진 업로드)
         if (currentStep === 1) {
             console.log('1단계에서 2단계로 이동 시작');
             const oldStep = currentStep;
@@ -1343,68 +1450,47 @@ async function nextStep() {
             updateProgressSteps();
             showCurrentStep();
             
-            // 상태 저장
-            saveAppState();
-            console.log('1단계에서 2단계로 이동 완료');
-        }
-        // 2단계에서 3단계로 이동할 때 (결제 완료 확인)
-        else if (currentStep === 2) {
-            // 결제 완료 여부 확인
-            if (!window.paymentCompleted) {
-                showError('결제를 먼저 완료해주세요.');
-                return;
-            }
-            
-            const oldStep = currentStep;
-            currentStep++;
-            showDebugLog(`[NEXT] 단계 전환: ${oldStep} → ${currentStep}`);
-            updateProgressSteps();
-            showCurrentStep();
-            
-            // 3단계에서 이미지 업로드 이벤트 리스너 설정
+            // 2단계에서 이미지 업로드 이벤트 리스너 설정
             setupImageUploadEventListeners();
             
             // 상태 저장
             saveAppState();
-        } else if (currentStep === 3) {
-            // 3단계에서 4단계로 이동할 때
+            console.log('1단계에서 2단계로 이동 완료');
+        }
+        // 2단계에서 3단계로 이동할 때 (AI 분석)
+        else if (currentStep === 2) {
             // 모든 사진이 업로드되었는지 확인
             if (!checkAllImagesUploaded()) {
                 showError('모든 사진을 업로드해주세요.');
                 return;
             }
             
-            // 4단계로 이동
             const oldStep = currentStep;
             currentStep++;
             showDebugLog(`[NEXT] 단계 전환: ${oldStep} → ${currentStep}`);
             updateProgressSteps();
             showCurrentStep();
             
-            // 4단계에서 AI 분석 시작 (분석 완료 후 자동으로 5단계로 이동)
+            // 3단계에서 AI 분석 시작 (분석 완료 후 자동으로 4단계로 이동)
             startAnalysis();
             
             // 상태 저장
             saveAppState();
-        } else if (currentStep === 4) {
-            // 4단계에서 5단계로 이동할 때
-            console.log('=== 4단계에서 5단계로 이동 ===');
+        } else if (currentStep === 3) {
+            // 3단계에서 4단계로 이동할 때
+            console.log('=== 3단계에서 4단계로 이동 ===');
             
-                currentStep = 5;
+                currentStep = 4;
                 updateProgressSteps();
-                showCurrentStep();
+                showStep(4);  // showCurrentStep() 대신 showStep(4) 호출
                 
                 
                 // 상태 저장
                 saveAppState();
-        } else if (currentStep === 5) {
-            
-            // 상태 저장
-            console.log('상태 저장 시작...');
-            saveAppState();
-            console.log('상태 저장 완료');
-            
-            console.log('5단계에서 6단계로 이동 완료');
+        } else {
+            // 4단계는 마지막 단계
+            console.log('=== 4단계는 마지막 단계입니다 ===');
+            return;
         }
     }
 }
@@ -1534,27 +1620,7 @@ function showCurrentStep() {
                 setTimeout(() => {
                     console.log('=== 4단계 활성화 시 이미지 표시 ===');
                                     // 4단계에서 업로드된 이미지들 표시 (3장 모두)
-                if (uploadedImages.front && uploadedImages.front.dataUrl) {
-                    const step4ImageFront = document.getElementById('step4-uploaded-image-front');
-                    if (step4ImageFront) {
-                        step4ImageFront.src = uploadedImages.front.dataUrl;
-                        console.log('4단계 정면 이미지 표시 완료');
-                    }
-                }
-                if (uploadedImages['45'] && uploadedImages['45'].dataUrl) {
-                    const step4Image45 = document.getElementById('step4-uploaded-image-45');
-                    if (step4Image45) {
-                        step4Image45.src = uploadedImages['45'].dataUrl;
-                        console.log('4단계 45도 측면 이미지 표시 완료');
-                    }
-                }
-                if (uploadedImages['90'] && uploadedImages['90'].dataUrl) {
-                    const step4Image90 = document.getElementById('step4-uploaded-image-90');
-                    if (step4Image90) {
-                        step4Image90.src = uploadedImages['90'].dataUrl;
-                        console.log('4단계 90도 측면 이미지 표시 완료');
-                    }
-                }
+                    displayStep4Images();
                 
 
                 
@@ -1562,49 +1628,28 @@ function showCurrentStep() {
                 }, 100);
             }
             
-            // 5단계일 때 이미지 표시
-            if (panelStep === 5) {
+            // 4단계일 때 이미지 표시
+            if (panelStep === 4) {
                 setTimeout(() => {
-                    console.log('=== 5단계 활성화 시 이미지 확인 ===');
+                    console.log('=== 4단계 활성화 시 이미지 확인 ===');
                     
-                    // 5단계에서 업로드된 이미지들 표시 (3장 모두)
-                if (uploadedImages.front && uploadedImages.front.dataUrl) {
-                    const step5ImageFront = document.getElementById('step5-uploaded-image-front');
-                    if (step5ImageFront) {
-                        step5ImageFront.src = uploadedImages.front.dataUrl;
-                        console.log('5단계 정면 이미지 표시 완료');
-                    }
-                }
-                if (uploadedImages['45'] && uploadedImages['45'].dataUrl) {
-                    const step5Image45 = document.getElementById('step5-uploaded-image-45');
-                    if (step5Image45) {
-                        step5Image45.src = uploadedImages['45'].dataUrl;
-                        console.log('5단계 45도 측면 이미지 표시 완료');
-                    }
-                }
-                if (uploadedImages['90'] && uploadedImages['90'].dataUrl) {
-                    const step5Image90 = document.getElementById('step5-uploaded-image-90');
-                    if (step5Image90) {
-                        step5Image90.src = uploadedImages['90'].dataUrl;
-                        console.log('5단계 90도 측면 이미지 표시 완료');
-                    }
-                }
+                    // 4단계에서 업로드된 이미지들 표시 (3장 모두)
                 
                     
                     
-                    // 5단계로 이동할 때 "분석된 이미지들" 제목으로 스크롤
-                    const step5Element = document.getElementById('step-5');
-                    if (step5Element) {
-                        const analyzedImagesTitle = step5Element.querySelector('h3');
+                    // 4단계로 이동할 때 "분석된 이미지들" 제목으로 스크롤
+                    const step4Element = document.getElementById('step-4');
+                    if (step4Element) {
+                        const analyzedImagesTitle = step4Element.querySelector('h3');
                         if (analyzedImagesTitle) {
                             analyzedImagesTitle.scrollIntoView({ 
                                 behavior: 'smooth', 
                                 block: 'start' 
                             });
-                            console.log('5단계 "분석된 이미지들" 제목으로 스크롤 완료');
+                            console.log('4단계 "분석된 이미지들" 제목으로 스크롤 완료');
                         } else {
                             console.log('분석된 이미지들 제목을 찾을 수 없어 상단으로 스크롤');
-                            step5Element.scrollIntoView({ 
+                            step4Element.scrollIntoView({ 
                                 behavior: 'smooth', 
                                 block: 'start' 
                             });
@@ -1868,7 +1913,7 @@ async function startAnalysis() {
             updateProgressStatusWithRepeatingTyping('AI 분석 시작...', 80);
             await new Promise(resolve => setTimeout(resolve, 600));
             
-            // 5단계: 백엔드 API 호출 (50%)
+            // 4단계: 백엔드 API 호출 (50%)
             progressFill.style.width = '50%';
             updateProgressStatusWithRepeatingTyping('AI 모델에 이미지 전송 중...', 80);
             
@@ -1898,7 +1943,7 @@ async function startAnalysis() {
             const result = await response.json();
             
             if (result.success) {
-                // 5단계: 분석 완료 (100%)
+                // 4단계: 분석 완료 (100%)
                 progressFill.style.width = '100%';
                 updateProgressStatusWithRepeatingTyping('분석 완료!', 80);
                 await new Promise(resolve => setTimeout(resolve, 500));
@@ -1911,6 +1956,7 @@ async function startAnalysis() {
                 analysisResults = {
                     raw_analysis: result.analysis.analysis
                 };
+                try { sessionStorage.setItem('beautyAI_analysisResults', JSON.stringify(analysisResults)); } catch (e) { console.error('sessionStorage 저장 실패:', e); }
                 console.log('전역 변수에 저장된 데이터:', analysisResults);
                 
                 // 분석 진행 상태 모니터링 시작
@@ -1923,21 +1969,21 @@ async function startAnalysis() {
                 // 상태 저장
                 saveAppState();
                 
-                // 분석 완료 후 5단계로 이동
-                console.log('AI 분석 완료! 5단계로 이동합니다.');
+                // 분석 완료 후 4단계로 이동
+                console.log('AI 분석 완료! 4단계로 이동합니다.');
                 
-                // 5단계로 자동 이동
+                // 4단계로 자동 이동
                 const oldStep = currentStep;
-                currentStep = 5;
+                currentStep = 4;
                 showDebugLog(`[AUTO] 단계 전환: ${oldStep} → ${currentStep}`);
                 updateProgressSteps();
-                showCurrentStep();
+                showStep(4);  // showCurrentStep() 대신 showStep(4) 호출
                 saveAppState();
                 
                 // 분석 결과 표시
                 displayFullAIResponse(analysisResults);
                 
-                console.log('5단계로 이동 완료');
+                console.log('4단계로 이동 완료');
             } else {
                 // AI 거부 응답인지 확인
                 if (result.error === 'ai_refusal') {
@@ -1974,6 +2020,45 @@ async function startAnalysis() {
 
 
 
+
+// 4단계에서 이미지 표시하는 함수
+function displayStep4Images() {
+    console.log('=== 4단계 이미지 표시 함수 호출 ===');
+    
+    if (!uploadedImages) {
+        console.log('업로드된 이미지 데이터가 없습니다.');
+        return;
+    }
+    
+    // 정면 이미지 표시
+    if (uploadedImages.front && uploadedImages.front.dataUrl) {
+        const step4ImageFront = document.getElementById('step4-uploaded-image-front');
+        if (step4ImageFront) {
+            step4ImageFront.src = uploadedImages.front.dataUrl;
+            console.log('4단계 정면 이미지 표시 완료');
+        }
+    }
+    
+    // 45도 측면 이미지 표시
+    if (uploadedImages['45'] && uploadedImages['45'].dataUrl) {
+        const step4Image45 = document.getElementById('step4-uploaded-image-45');
+        if (step4Image45) {
+            step4Image45.src = uploadedImages['45'].dataUrl;
+            console.log('4단계 45도 측면 이미지 표시 완료');
+        }
+    }
+    
+    // 90도 측면 이미지 표시
+    if (uploadedImages['90'] && uploadedImages['90'].dataUrl) {
+        const step4Image90 = document.getElementById('step4-uploaded-image-90');
+        if (step4Image90) {
+            step4Image90.src = uploadedImages['90'].dataUrl;
+            console.log('4단계 90도 측면 이미지 표시 완료');
+        }
+    }
+    
+    console.log('4단계 이미지 표시 완료');
+}
 
 // GPT-4o 전체 응답을 표시하는 함수
 function displayFullAIResponse(analysisResults) {
@@ -2198,7 +2283,7 @@ async function saveAnalysisResult() {
             </div>
             
             <div style="text-align: center; margin-top: 30px; color: #666; font-size: 0.9em;">
-                Better me - AI 외모 분석 결과
+                Better Me - AI 외모 분석 결과
             </div>
         `;
         
@@ -2228,7 +2313,7 @@ async function saveAnalysisResult() {
         
     } catch (error) {
         console.error('분석 결과 이미지 저장 실패:', error);
-        alert('이미지 저장에 실패했습니다: ' + error.message);
+        
     }
 }
 
@@ -2375,7 +2460,7 @@ async function saveAnalysisResultToServer(isAutoSave = false) {
     }
 }
 
-// ChatGPT 응답을 5단계와 동일한 구조로 변환
+// ChatGPT 응답을 4단계와 동일한 구조로 변환
 
 // 분석 결과를 Figma 디자인에 맞게 구조화된 HTML로 변환
 function formatAnalysisResult(text) {
@@ -2476,13 +2561,13 @@ async function checkAnalysisProgress(sessionId) {
             console.log('현재 분석 진행 상태:', progress);
             
             if (progress.status === 'completed') {
-                // AI 분석이 완료된 경우 5단계로 자동 이동
-                console.log('AI 분석 완료되어 5단계로 자동 이동');
+                // AI 분석이 완료된 경우 4단계로 자동 이동
+                console.log('AI 분석 완료되어 4단계로 자동 이동');
                 const oldStep = currentStep;
-                currentStep = 5;
+                currentStep = 4;
                 showDebugLog(`[AUTO] 단계 전환: ${oldStep} → ${currentStep}`);
                 updateProgressSteps();
-                showCurrentStep();
+                showStep(4);  // showCurrentStep() 대신 showStep(4) 호출
                 saveAppState();
                 
                 // 세션 ID 제거
@@ -2530,13 +2615,13 @@ function copyShareLink() {
         
         try {
             document.execCommand('copy');
-            alert('링크가 클립보드에 복사되었습니다!');
+            
         } catch (err) {
             // 최신 브라우저용 Clipboard API 사용
             navigator.clipboard.writeText(shareLinkInput.value).then(() => {
-                alert('링크가 클립보드에 복사되었습니다!');
+                
             }).catch(() => {
-                alert('링크 복사에 실패했습니다. 수동으로 복사해주세요.');
+                
             });
         }
     }
@@ -2653,12 +2738,12 @@ function hideLoadingModal() {
 
 // 에러 메시지 표시
 function showError(message) {
-    alert(message); // 실제 앱에서는 더 세련된 에러 표시 방식 사용
+    
 }
 
 // 성공 메시지 표시
 function showSuccess(message) {
-    alert(message); // 실제 앱에서는 더 세련된 성공 표시 방식 사용
+    
 }
 
 // AI 거부 메시지 표시
@@ -2676,7 +2761,7 @@ ${details.reason || 'AI 모델 정책상 분석할 수 없습니다'}
 
 🔄 **다시 시도하기** 버튼을 클릭하여 새로운 사진을 업로드해주세요.`;
     
-    alert(refusalMessage);
+    
 }
 
 // 키보드 단축키
@@ -2698,28 +2783,28 @@ function downloadImage(canvas, filename) {
 }
 
 
-// 5단계만 저장하는 함수
-async function saveStep5AsImage() {
+// 4단계만 저장하는 함수
+async function saveStep4AsImage() {
     try {
-        console.log('=== 5단계 이미지 저장 시작 ===');
+        console.log('=== 4단계 이미지 저장 시작 ===');
         
         // 현재 날짜와 시간으로 파일명 생성
         const now = new Date();
         const dateString = now.toISOString().slice(0, 19).replace(/[:-]/g, '');
         
-        // 5단계 캡처
-        console.log('5단계 캡처 시작...');
-        const step5Element = document.getElementById('step-5');
-        console.log('5단계 요소 찾기 결과:', step5Element);
+        // 4단계 캡처
+        console.log('4단계 캡처 시작...');
+        const step4Element = document.getElementById('step-4');
+        console.log('4단계 요소 찾기 결과:', step4Element);
         
-        if (step5Element) {
-            // 5단계 이미지들이 제대로 로드되었는지 확인
-            const step5Images = step5Element.querySelectorAll('img[id*="step5-uploaded-image"]');
-            console.log('5단계에서 찾은 이미지 개수:', step5Images.length);
+        if (step4Element) {
+            // 4단계 이미지들이 제대로 로드되었는지 확인
+            const step4Images = step4Element.querySelectorAll('img[id*="step4-uploaded-image"]');
+            console.log('4단계에서 찾은 이미지 개수:', step4Images.length);
             
             // 이미지 로딩 상태 확인 및 강제 로딩
             let allImagesLoaded = true;
-            for (let img of step5Images) {
+            for (let img of step4Images) {
                 console.log(`이미지 확인:`, img.id, 'src:', img.src, 'complete:', img.complete);
                 
                 if (img.src && img.src !== '') {
@@ -2754,8 +2839,8 @@ async function saveStep5AsImage() {
             
             console.log('모든 이미지 로딩 상태:', allImagesLoaded);
             
-            // 5단계를 현재 화면에 표시된 상태로 캡처
-            const canvas5 = await html2canvas(step5Element, {
+            // 4단계를 현재 화면에 표시된 상태로 캡처
+            const canvas4 = await html2canvas(step4Element, {
                 scale: 2, // 고해상도로 설정
                 useCORS: true,
                 allowTaint: true,
@@ -2766,24 +2851,24 @@ async function saveStep5AsImage() {
                 backgroundColor: '#ffffff' // 배경색 설정
             });
             
-            console.log('5단계 캔버스 크기:', canvas5.width, 'x', canvas5.height);
+            console.log('4단계 캔버스 크기:', canvas4.width, 'x', canvas4.height);
             
-            // 5단계 이미지 다운로드
-            const fileName5 = `beauty-ai-step5-${dateString}.png`;
-            downloadImage(canvas5, fileName5);
-            console.log('5단계 이미지 저장 완료:', fileName5);
+            // 4단계 이미지 다운로드
+            const fileName4 = `beauty-ai-step4-${dateString}.png`;
+            downloadImage(canvas4, fileName4);
+            console.log('4단계 이미지 저장 완료:', fileName4);
             
             // 성공 메시지
-            showSuccess('5단계 이미지가 성공적으로 저장되었습니다!');
+            showSuccess('4단계 이미지가 성공적으로 저장되었습니다!');
             
         } else {
-            console.error('5단계 요소를 찾을 수 없습니다.');
-            showError('5단계 요소를 찾을 수 없습니다.');
+            console.error('4단계 요소를 찾을 수 없습니다.');
+            showError('4단계 요소를 찾을 수 없습니다.');
         }
         
     } catch (error) {
-        console.error('5단계 이미지 저장 중 오류 발생:', error);
-        showError('5단계 이미지 저장 중 오류가 발생했습니다: ' + error.message);
+        console.error('4단계 이미지 저장 중 오류 발생:', error);
+        showError('4단계 이미지 저장 중 오류가 발생했습니다: ' + error.message);
     }
 }
 

@@ -283,9 +283,9 @@ body {
 }
 
 .main-logo {
-    max-width: 400px;
+    max-width: 320px;
     height: auto;
-    max-height: 100px;
+    max-height: 80px;
     object-fit: contain;
     filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
     transition: all 0.3s ease;
@@ -515,6 +515,27 @@ body {
     transform: none;
 }
 
+/* 1단계 다음 단계 버튼 스타일 */
+#next-step-2 {
+    background: #CD3D3A;
+    color: white;
+    border: none;
+}
+
+#next-step-2:hover:not(:disabled) {
+    background: #B83532;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(205, 61, 58, 0.3);
+}
+
+#next-step-2:disabled {
+    background: #CD3D3A;
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    color: white;
+}
+
 /* 업로드 지시사항 스타일 */
 .upload-instructions {
     text-align: center;
@@ -697,6 +718,27 @@ body {
     margin-bottom: 2rem;
 }
 
+/* 4단계 분석 결과: 모바일에서만 좌우 여백 없이 전체 폭 사용 */
+@media (max-width: 768px) {
+    #step-4 #complete-analysis-content {
+        margin-left: -20px; /* 페이지 좌우 패딩 제거 보정 */
+        margin-right: -20px;
+    }
+
+    #step-4 .full-analysis-response {
+        padding-left: 0;
+        padding-right: 0;
+        border-radius: 0;
+        border: none;
+    }
+
+    #step-4 .analysis-text {
+        padding-left: 0;
+        padding-right: 0;
+        border-radius: 0;
+    }
+}
+
 /* 포인트 표시 스타일 - 박스 제거 */
 .point-display {
     text-align: center;
@@ -723,7 +765,7 @@ body {
     margin: 0 0 1.5rem 0;
     font-size: 1.5rem;
     text-align: center;
-    color: white;  /* 제목을 흰색으로 */
+    color: #D45858;  /* 제목을 빨간색으로 */
 }
 
 /* 전체 JSON 응답 스타일 */
@@ -1040,8 +1082,8 @@ body {
 @media (max-width: 768px) {
     
     .main-logo {
-        max-width: 300px;
-        max-height: 80px;
+        max-width: 240px;
+        max-height: 60px;
     }
     
     .progress-steps {
@@ -1092,12 +1134,12 @@ body {
         order: 2;
     }
     
-    /* 5단계의 특별한 버튼 스타일도 모바일에서 순서 적용 */
-    #step-5 .step-buttons .btn-success {
+    /* 4단계의 특별한 버튼 스타일도 모바일에서 순서 적용 */
+    #step-4 .step-buttons .btn-success {
         order: 1;
     }
     
-    #step-5 .step-buttons .btn-secondary {
+    #step-4 .step-buttons .btn-secondary {
         order: 2;
     }
     
@@ -1113,8 +1155,8 @@ body {
 
 @media (max-width: 480px) {
     .main-logo {
-        max-width: 250px;
-        max-height: 60px;
+        max-width: 200px;
+        max-height: 50px;
     }
     
     .step-content {
@@ -1539,19 +1581,16 @@ body {
     justify-content: center;
 }
 
-#step-5 .btn-success {
+#step-4 .btn-success {
     background: #CD3D3A;
     color: white;
     box-shadow: 0 4px 16px rgba(205, 61, 58, 0.3);
 }
 
-#step-5 .btn-success:hover {
+#step-4 .btn-success:hover {
     background: #B91C1C;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(205, 61, 58, 0.4);
-}
-
-    font-family: 'Inter', sans-serif;
 }
 
 /* 6단계에서 5단계와 동일한 스타일 클래스들 적용 */
@@ -1619,7 +1658,7 @@ body {
 }
 
 .loading-title {
-    color: #333;  /* 로딩 제목을 검은색으로 */
+    color: #D45858;  /* 로딩 제목을 빨간색으로 */
     font-size: 1.2rem;
     margin-bottom: 20px;
 }

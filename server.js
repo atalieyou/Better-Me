@@ -560,12 +560,15 @@ app.get('/api/get-analysis-result-server/:resultId', (req, res) => {
                 });
             }
             
+            // 분석 결과가 있으면 currentStep을 4로 강제 설정
+            const currentStepToReturn = result.analysisResult ? 4 : result.currentStep;
+            
             res.json({ 
                 success: true, 
                 result: {
                     analysisResult: result.analysisResult,
                     uploadedImages: result.uploadedImages,
-                    currentStep: result.currentStep,
+                    currentStep: currentStepToReturn,
                     createdAt: result.createdAt
                 }
             });
@@ -638,7 +641,7 @@ app.use('*', (req, res) => {
 
 // 서버 시작
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Better me App Backend Server가 포트 ${PORT}에서 실행 중입니다.`);
+    console.log(`🚀 Better Me App Backend Server가 포트 ${PORT}에서 실행 중입니다.`);
     console.log(`📁 업로드 디렉토리: ${uploadDir}`);
     console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5500'}`);
     console.log(`🔑 OpenAI API Key: ${process.env.OPENAI_API_KEY ? '설정됨' : '설정되지 않음'}`);
