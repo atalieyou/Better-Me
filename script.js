@@ -31,6 +31,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 initializeApp 호출 시작');
     
     try {
+        // GA4 초기 page_view (landing)
+        if (typeof gtag === 'function') {
+            gtag('event', 'page_view', {
+                page_title: document.title,
+                page_location: window.location.href,
+                page_path: '/'
+            });
+        }
         await initializeApp();
         console.log('🚀 initializeApp 호출 완료');
         setupRealTimeValidation();
@@ -600,6 +608,17 @@ async function restoreAppState() {
         currentStep = step;
         sessionStorage.setItem('beautyAI_currentStep', step.toString());
         console.log('🔍 currentStep 업데이트 완료:', currentStep);
+        // GA4 SPA page_view 라우팅 추적
+        try {
+            if (typeof gtag === 'function') {
+                const path = `/step-${step}`;
+                gtag('event', 'page_view', {
+                    page_title: `Step ${step}`,
+                    page_location: window.location.origin + path,
+                    page_path: path
+                });
+            }
+        } catch (e) { /* no-op */ }
     
     try {
         // 모든 단계 패널 숨기기
@@ -633,6 +652,8 @@ async function restoreAppState() {
                     console.log('🔍 4단계에서 분석 결과 표시 시작');
                     displayFullAIResponse(analysisResults);
                     console.log('🔍 4단계에서 분석 결과 표시 완료');
+                    // GA4: 분석결과 표시 이벤트
+                    try { if (typeof gtag === 'function') { gtag('event', 'analysis_displayed'); } } catch(e){}
                 } else {
                     console.log('🔍 4단계에서 분석 결과 없음 - 로딩 메시지 표시');
                     // 분석 결과가 없을 때 로딩 메시지 표시
@@ -1883,6 +1904,8 @@ function disableNextStep() {
 // AI 분석 시작
 async function startAnalysis() {
     try {
+        // GA4: 분석 시작 이벤트
+        try { if (typeof gtag === 'function') { gtag('event', 'analysis_started'); } } catch(e){}
         // 진행률 초기화
         const progressFill = document.getElementById('analysis-progress-fill');
         const progressText = document.getElementById('analysis-progress-text');
@@ -1982,6 +2005,8 @@ async function startAnalysis() {
                 
                 // 분석 결과 표시
                 displayFullAIResponse(analysisResults);
+                // GA4: 분석 완료 이벤트
+                try { if (typeof gtag === 'function') { gtag('event', 'analysis_completed'); } } catch(e){}
                 
                 console.log('4단계로 이동 완료');
             } else {
