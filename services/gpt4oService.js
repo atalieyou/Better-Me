@@ -128,15 +128,9 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
                     ]
                 };
 
-                // gpt-5 모델은 max_completion_tokens만, 다른 모델은 temperature와 max_tokens 사용
-                if (modelName === "gpt-5") {
-                    // gpt-5는 max_completion_tokens 파라미터 지원 안함
-                    // gpt-5는 temperature 파라미터 지원 안함
-                    // gpt-5에서는 max_tokens 파라미터를 설정하지 않음
-                } else {
-                    params.temperature = 0.7;
-                    params.max_tokens = 4000; // gpt-4 모델들의 제한에 맞춤
-                }
+                // GPT-4 Mini는 temperature와 max_tokens 사용
+                params.temperature = 0.7;
+                params.max_tokens = 4000;
 
                 const response = await openai.chat.completions.create(params);
 
@@ -166,8 +160,8 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
             }
         }
 
-        // 모델들을 순서대로 시도 (ChatGPT 5 모델 우선, gpt-4o 제거)
-        const models = ["gpt-5", "gpt-4-turbo"];
+        // 모델들을 순서대로 시도 (GPT-4 Mini 테스트용)
+        const models = ["gpt-4o-mini"];
         let response = null;
         let quotaExceeded = false;
         
@@ -325,15 +319,9 @@ async function getMakeupTips(analysisResult) {
                     ]
                 };
 
-                // gpt-5 모델은 max_completion_tokens만, 다른 모델은 temperature와 max_tokens 사용
-                if (modelName === "gpt-5") {
-                    // gpt-5는 max_completion_tokens 파라미터 지원 안함
-                    // gpt-5는 temperature 파라미터 지원 안함
-                    // gpt-5에서는 max_tokens 파라미터를 설정하지 않음
-                } else {
-                    params.temperature = 0.7;
-                    params.max_tokens = 4000; // gpt-4 모델들의 제한에 맞춤
-                }
+                // GPT-4 Mini는 temperature와 max_tokens 사용
+                params.temperature = 0.7;
+                params.max_tokens = 4000;
 
                 const response = await openai.chat.completions.create(params);
 
@@ -363,8 +351,8 @@ async function getMakeupTips(analysisResult) {
             }
         }
 
-        // 모델들을 순서대로 시도 (ChatGPT 5 모델 우선, gpt-4o 제거)
-        const models = ["gpt-5", "gpt-4-turbo"];
+        // 모델들을 순서대로 시도 (GPT-4 Mini 테스트용)
+        const models = ["gpt-4o-mini"];
         let response = null;
         let quotaExceeded = false;
         
