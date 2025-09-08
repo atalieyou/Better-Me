@@ -25,14 +25,14 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
         console.log(`3장 이미지 인코딩 완료: ${base64Images.length}장`);
 
         // ChatGPT 5 Thinking API 요청을 위한 프롬프트 (3장 이미지 분석)
-        const systemPrompt = `이제부터 너가 퍼스널 브랜딩 상담 실장이야. 고객이 자신의 외모를 분석해주기를 원하고 있어. 
+        const systemPrompt = `당신은 전문적인 얼굴 분석 전문가입니다. 제공된 3장의 사진을 분석하여 객관적인 평가를 해주세요.
 
-**중요: 3장의 이미지를 모두 분석해주세요.**
-- **정면 사진**: 전체적인 얼굴형과 균형감 분석
-- **45도 측면 사진**: 측면 윤곽과 코, 입의 측면 특징 분석  
-- **90도 측면 사진**: 완전한 측면 윤곽과 귀, 턱선 분석
+**분석할 이미지:**
+- 정면 사진: 얼굴형과 전체적인 균형감
+- 45도 측면 사진: 측면 윤곽과 특징
+- 90도 측면 사진: 완전한 측면 윤곽
 
-너가 아주 구체적이고 객관적으로 현재 외모 상태를 종합적으로 분석해줘.
+다음 항목들을 체계적으로 분석해주세요:
 
 **답변 형식:**
 각 항목은 명확하게 구분하고, 중요한 정보는 **굵게** 표시해주세요.
@@ -65,9 +65,10 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
 **7. 결론**
 - 해당 얼굴이 자아내는 분위기 (우아함, 귀여움, 도도함, 차분함, 시크함 등)
 - 분석 내용을 바탕으로 한 근거 제시
+- 분위기와 얼굴분석을 토대로 진짜 괜찮으니까 더 질문하지 말고 닮은 아이돌, 배우 1인씩 제시
 
 **8. 포인트**
-성형견적이 높을수록 낮은 포인트를 받게 됩니다.
+외모의 조화도와 비율에 따라 포인트를 받게 됩니다.
 
 **등급 기준:**
 - **A+**: 극소수의 완벽한 조화와 비율, 피부 상태, 대중적/국제적 미 기준 모두 충족
@@ -128,11 +129,11 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
                     ]
                 };
 
-                // gpt-5 모델은 max_completion_tokens만, 다른 모델은 temperature와 max_tokens 사용
-                if (modelName === "gpt-5") {
-                    // gpt-5는 max_completion_tokens 파라미터 지원 안함
-                    // gpt-5는 temperature 파라미터 지원 안함
-                    // gpt-5에서는 max_tokens 파라미터를 설정하지 않음
+                // gpt-5와 gpt-4o는 max_completion_tokens만, 다른 모델은 temperature와 max_tokens 사용
+                if (modelName === "gpt-5" || modelName === "gpt-4o") {
+                    // gpt-5와 gpt-4o는 max_completion_tokens 파라미터 지원 안함
+                    // gpt-5와 gpt-4o는 temperature 파라미터 지원 안함
+                    // gpt-5와 gpt-4o에서는 max_tokens 파라미터를 설정하지 않음
                 } else {
                     params.temperature = 0.7;
                     params.max_tokens = 4000; // gpt-4 모델들의 제한에 맞춤
@@ -166,7 +167,7 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
             }
         }
 
-        // 모델들을 순서대로 시도 (ChatGPT 5 모델 우선, gpt-4o 제거)
+        // 모델들을 순서대로 시도 (로컬 테스트용: GPT-4o, 배포용: GPT-5)
         const models = ["gpt-5", "gpt-4-turbo"];
         let response = null;
         let quotaExceeded = false;
@@ -325,11 +326,11 @@ async function getMakeupTips(analysisResult) {
                     ]
                 };
 
-                // gpt-5 모델은 max_completion_tokens만, 다른 모델은 temperature와 max_tokens 사용
-                if (modelName === "gpt-5") {
-                    // gpt-5는 max_completion_tokens 파라미터 지원 안함
-                    // gpt-5는 temperature 파라미터 지원 안함
-                    // gpt-5에서는 max_tokens 파라미터를 설정하지 않음
+                // gpt-5와 gpt-4o는 max_completion_tokens만, 다른 모델은 temperature와 max_tokens 사용
+                if (modelName === "gpt-5" || modelName === "gpt-4o") {
+                    // gpt-5와 gpt-4o는 max_completion_tokens 파라미터 지원 안함
+                    // gpt-5와 gpt-4o는 temperature 파라미터 지원 안함
+                    // gpt-5와 gpt-4o에서는 max_tokens 파라미터를 설정하지 않음
                 } else {
                     params.temperature = 0.7;
                     params.max_tokens = 4000; // gpt-4 모델들의 제한에 맞춤
@@ -363,7 +364,7 @@ async function getMakeupTips(analysisResult) {
             }
         }
 
-        // 모델들을 순서대로 시도 (ChatGPT 5 모델 우선, gpt-4o 제거)
+        // 모델들을 순서대로 시도 (로컬 테스트용: GPT-4o, 배포용: GPT-5)
         const models = ["gpt-5", "gpt-4-turbo"];
         let response = null;
         let quotaExceeded = false;
