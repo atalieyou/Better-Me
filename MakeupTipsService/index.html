@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나만의 메이크업 팁 만들기 - Better Me</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #fafafa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #e91e63;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: #d81b60;
+        }
+
+        .service-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #e91e63;
+            margin-bottom: 20px;
+        }
+
+        .service-description {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .step {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #e91e63;
+        }
+
+        .step-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #e91e63;
+            margin-bottom: 15px;
+        }
+
+        .step-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .step-description {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .feature-description {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .cta-section {
+            text-align: center;
+            background: linear-gradient(135deg, #e91e63 0%, #d81b60 100%);
+            color: white;
+            padding: 60px 40px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+        }
+
+        .cta-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .cta-description {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            background-color: white;
+            color: #e91e63;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 60px;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+
+            .service-title {
+                font-size: 2rem;
+            }
+
+            .back-button {
+                position: relative;
+                top: auto;
+                left: auto;
+                margin-bottom: 20px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-section {
+                padding: 40px 20px;
+            }
+
+            .cta-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../BetterMeHub/index.html" class="back-button">← 뒤로가기</a>
+    
+    <div class="container">
+        <div class="header">
+            <img src="../better-me-logo.png" alt="Better Me" class="logo">
+            <h1 class="service-title">나만의 메이크업 팁 만들기</h1>
+            <p class="service-description">AI가 당신의 얼굴형과 피부톤을 분석하여 맞춤형 메이크업 팁을 제공합니다</p>
+        </div>
+
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1단계</div>
+                <div class="step-title">얼굴 분석</div>
+                <div class="step-description">정면, 측면 사진을 업로드하여 AI가 당신의 얼굴형과 특징을 분석합니다</div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2단계</div>
+                <div class="step-title">피부톤 분석</div>
+                <div class="step-description">피부톤과 색상을 정밀 분석하여 가장 어울리는 메이크업 컬러를 찾습니다</div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3단계</div>
+                <div class="step-title">맞춤형 팁 제공</div>
+                <div class="step-description">분석 결과를 바탕으로 당신만의 메이크업 팁과 제품 추천을 제공합니다</div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <div class="feature-title">맞춤형 컬러 추천</div>
+                <div class="feature-description">당신의 피부톤에 가장 어울리는 메이크업 컬러를 추천합니다</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">✨</div>
+                <div class="feature-title">얼굴형별 팁</div>
+                <div class="feature-description">얼굴형에 맞는 메이크업 기법과 포인트를 알려드립니다</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💄</div>
+                <div class="feature-title">제품 추천</div>
+                <div class="feature-description">당신에게 가장 적합한 메이크업 제품을 추천합니다</div>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2 class="cta-title">지금 시작해보세요!</h2>
+            <p class="cta-description">AI가 당신만의 완벽한 메이크업 팁을 만들어드립니다</p>
+            <a href="#" class="cta-button">서비스 시작하기</a>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2023 Better Me. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // 서비스 시작 버튼 클릭 시 얼굴분석 서비스로 연결
+        document.querySelector('.cta-button').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.open('http://localhost:3000', '_blank');
+        });
+    </script>
+</body>
+</html>
