@@ -69,6 +69,7 @@ app.use(cors({
         'https://better-jn20tnnp3-atalies-projects.vercel.app',
         'https://better-hejanbd08-atalies-projects.vercel.app',
         'https://better-4kwtyrx9w-atalies-projects.vercel.app',
+        'https://better-me-3805.onrender.com',
         process.env.CORS_ORIGIN
     ].filter(Boolean),
     credentials: true
