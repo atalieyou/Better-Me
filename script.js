@@ -2907,9 +2907,10 @@ async function saveStep4AsImage() {
 
 // 업로드 옵션 모달 닫기 함수는 제거됨
 
+
 // 함수들을 전역 스코프에 등록
 window.saveAsImages = saveAsImages;
-window.saveStep5AsImage = saveStep5AsImage;
+window.saveStep4AsImage = saveStep4AsImage;
 // 모달 관련 전역 함수들은 제거됨
 
 // 페이지 새로고침 시 경고
