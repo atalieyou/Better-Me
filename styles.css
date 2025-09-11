@@ -2007,6 +2007,37 @@ body {
     gap: 1rem;
 }
 
+/* 뒤로가기 버튼 스타일 */
+.back-button-container {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.back-button {
+    background-color: #f8f9fa;
+    color: #333;
+    border: 1px solid #e9ecef;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.back-button:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    transform: translateY(-1px);
+}
+
+.back-button i {
+    font-size: 0.8rem;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 768px) {
     .payment-options-grid {
@@ -2019,5 +2050,10 @@ body {
     
     .payment-section {
         padding: 1rem;
+    }
+    
+    .back-button {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
     }
 }

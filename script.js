@@ -2921,6 +2921,23 @@ window.addEventListener('beforeunload', function(e) {
     }
 });
 
+// 허브 웹사이트로 이동하는 함수
+function goToHub() {
+    const hostname = window.location.hostname;
+    
+    // localhost나 로컬 IP인 경우
+    if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+        // 로컬 환경에서는 8080 포트의 허브 웹사이트로 이동
+        window.location.href = `http://${hostname}:8080`;
+    } else {
+        // 외부 도메인인 경우 (Render 배포 시) - 루트 경로로 이동
+        window.location.href = `https://${hostname}/`;
+    }
+}
+
+// 전역 함수로 등록
+window.goToHub = goToHub;
+
 
 
 
