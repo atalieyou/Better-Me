@@ -9,7 +9,7 @@ function getApiBaseUrl() {
     const hostname = window.location.hostname;
     
     // API 서버는 항상 3000 포트에서 실행 중
-    const apiPort = '3000';
+    const apiPort = '3002';
     
     // localhost나 로컬 IP인 경우 HTTP 사용
     if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
