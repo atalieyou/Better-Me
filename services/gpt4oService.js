@@ -88,9 +88,12 @@ Clearly separate each item and **bold** important information.
 
 **4. Eyes**
 - Double eyelid presence, eye size, inner/outer corner degree
-- Eye corner position, distance between eyes
+- Eye corner angle, distance between eyes, eye size
 - Size of aegyo-sal (under-eye fat)
-- Overall eye impression and characteristics
+
+**5. Eyebrows**
+- Eyebrow shape
+- Eyelid width
 
 **5. Nose**
 - Nose length, width, nostril and nose tip ratio
@@ -150,9 +153,12 @@ Finally, don't ask me any more questions or make recommendations, just finish.
 
 **4. 눈**
 - 쌍커풀 유무, 눈동자 크기, 앞/뒤 트임 정도
-- 눈꼬리 위치, 눈과 눈 사이 거리
+- 눈꼬리 각도, 눈과 눈 사이 거리, 눈 크기
 - 애교살의 크기
-- 전체적인 눈의 인상과 특징
+
+**5. 눈썹**
+- 눈썹 모양
+- 눈두덩이 넓이
 
 **5. 코**
 - 코 길이, 너비, 콧망울과 콧볼의 비율
