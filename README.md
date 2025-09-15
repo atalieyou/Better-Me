@@ -5,7 +5,9 @@ AI 기술을 활용하여 고객의 얼굴 이미지를 분석하고 성형외�
 ## 🚀 주요 기능
 
 - **AI 얼굴 분석**: GPT-4o API를 활용한 정밀한 얼굴 분석
-- **성형외과 상담**: 전문적인 외모 피드백 및 개선 방안 제시
+- **개인 맞춤 메이크업 팁**: 얼굴형과 피부톤에 맞는 메이크업 가이드
+- **헤어스타일 추천**: 얼굴형에 어울리는 헤어스타일 제안
+- **결제 시스템**: 카카오페이, 토스페이먼츠 연동
 - **구체적 분석 항목**:
   - 얼굴형 (달걀형, 둥근형, 땅콩형, 마름모형, 하트형, 육각형)
   - 얼굴 비율 (상안부, 중안부, 하안부)
@@ -61,12 +63,46 @@ UPLOAD_PATH=./uploads
 
 # CORS 설정
 CORS_ORIGIN=http://localhost:5500
+
+# 결제 API 설정 (선택사항)
+KAKAO_PAY_ADMIN_KEY=your_kakao_pay_admin_key_here
+TOSS_SECRET_KEY=your_toss_secret_key_here
+
+# 해외 결제 API 설정 (선택사항)
+PAYPAL_CLIENT_ID=your_paypal_client_id_here
+PAYPAL_CLIENT_SECRET=your_paypal_client_secret_here
+STRIPE_SECRET_KEY=your_stripe_secret_key_here
 ```
 
-### 4. OpenAI API 키 발급
+### 4. API 키 발급
+
+#### OpenAI API 키
 1. [OpenAI Platform](https://platform.openai.com/)에 가입
 2. API 키 생성
 3. `.env` 파일에 API 키 입력
+
+#### 카카오페이 API 키 (선택사항)
+1. [카카오 개발자 콘솔](https://developers.kakao.com/)에 가입
+2. 애플리케이션 생성
+3. 결제 서비스 활성화
+4. Admin Key 발급
+5. `.env` 파일에 `KAKAO_PAY_ADMIN_KEY` 입력
+
+#### 토스페이먼츠 API 키 (선택사항)
+1. [토스페이먼츠 개발자 센터](https://developers.tosspayments.com/)에 가입
+2. 테스트/실제 키 발급
+3. `.env` 파일에 `TOSS_SECRET_KEY` 입력
+
+#### PayPal API 키 (해외 결제용)
+1. [PayPal 개발자 센터](https://developer.paypal.com/)에 가입
+2. 애플리케이션 생성
+3. Client ID와 Secret 발급
+4. `.env` 파일에 `PAYPAL_CLIENT_ID`와 `PAYPAL_CLIENT_SECRET` 입력
+
+#### Stripe API 키 (해외 카드결제용)
+1. [Stripe 대시보드](https://dashboard.stripe.com/)에 가입
+2. API 키 발급 (테스트/실제)
+3. `.env` 파일에 `STRIPE_SECRET_KEY` 입력
 
 ## 🚀 실행 방법
 
@@ -149,6 +185,90 @@ python -m SimpleHTTPServer 5500
 
 ### GET /api/health
 서버 상태 확인 API
+
+### POST /api/payment/kakao/ready
+카카오페이 결제 준비 API
+
+**Request:**
+```json
+{
+  "amount": 29000,
+  "item_name": "헤어/메이크업 팁 패키지",
+  "user_id": "user_123"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "tid": "T1234567890123456789",
+  "next_redirect_pc_url": "https://kapi.kakao.com/v1/payment/ready",
+  "next_redirect_mobile_url": "https://kapi.kakao.com/v1/payment/ready"
+}
+```
+
+### POST /api/payment/toss/ready
+토스페이먼츠 결제 준비 API
+
+**Request:**
+```json
+{
+  "amount": 29000,
+  "orderName": "헤어/메이크업 팁 패키지",
+  "customerName": "고객"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "payment": {
+    "checkoutPage": "https://checkout.tosspayments.com/..."
+  }
+}
+```
+
+### POST /api/payment/paypal/create-order
+PayPal 결제 주문 생성 API (해외 결제용)
+
+**Request:**
+```json
+{
+  "amount": 29000,
+  "currency": "USD"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "orderId": "ORDER_ID",
+  "approvalUrl": "https://www.sandbox.paypal.com/checkout/..."
+}
+```
+
+### POST /api/payment/stripe/create-payment-intent
+Stripe 결제 의도 생성 API (해외 카드결제용)
+
+**Request:**
+```json
+{
+  "amount": 29000,
+  "currency": "usd"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "clientSecret": "pi_xxx_secret_xxx",
+  "paymentIntentId": "pi_xxx"
+}
+```
 
 ## 📁 프로젝트 구조
 

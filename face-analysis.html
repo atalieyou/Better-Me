@@ -188,7 +188,6 @@
             
             <!-- 업로드된 이미지들 표시 -->
             <div class="uploaded-image-section">
-                <h3><i class="fas fa-image"></i> 분석된 이미지들</h3>
                 <div class="analysis-images-grid">
                     <div class="analysis-image-item">
                         <h4><i class="fas fa-user"></i> 정면 사진</h4>
@@ -211,7 +210,6 @@
                         <div class="point-display" id="point-display">
                             <!-- 포인트가 여기에 큰 폰트로 표시됩니다 -->
                         </div>
-                        <h4><i class="fas fa-clipboard-list"></i> 전체 분석 결과</h4>
                         <div class="analysis-content" id="complete-analysis-content">
                             <p>분석 결과를 기다리는 중...</p>
                         </div>
@@ -219,11 +217,14 @@
                 </div>
             </div>
             
-            <div class="step-buttons">
-                <button class="btn btn-success" onclick="saveStep4AsImage()" id="save-step4">
-                    <i class="fas fa-image"></i> 이미지로 저장하기
-                </button>
-            </div>
+                                <div class="step-buttons">
+                                    <button class="btn btn-back-to-main" onclick="goToMain()" id="back-to-main-btn">
+                                        <i class="fas fa-home"></i> 메인페이지로 돌아가기
+                                    </button>
+                                    <button class="btn btn-success" onclick="saveStep4AsImage()" id="save-step4">
+                                        <i class="fas fa-image"></i> 이미지로 저장하기
+                                    </button>
+                                </div>
         </div>
 
             </div>
@@ -304,6 +305,18 @@
                 window.saveAppState();
             }
         });
+        
+        // 메인페이지로 돌아가기 함수
+        function goToMain() {
+            const hostname = window.location.hostname;
+
+            if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+                window.location.href = `http://${hostname}:3000/`; // 로컬 메인페이지
+            } else {
+                window.location.href = `https://${hostname}/`; // 배포된 메인페이지 (루트)
+            }
+        }
+        window.goToMain = goToMain;
     </script>
 </body>
 </html>

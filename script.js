@@ -7,11 +7,13 @@ let feedbackData = null;
 // API URL을 동적으로 가져오는 함수
 function getApiBaseUrl() {
     const hostname = window.location.hostname;
-    const port = window.location.port || '3000';
+    
+    // API 서버는 항상 3000 포트에서 실행 중
+    const apiPort = '3000';
     
     // localhost나 로컬 IP인 경우 HTTP 사용
     if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
-        return `http://${hostname}:${port}`;
+        return `http://${hostname}:${apiPort}`;
     }
     
     // 외부 도메인인 경우 HTTPS 사용
@@ -43,6 +45,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log('🚀 initializeApp 호출 완료');
         setupRealTimeValidation();
         checkUrlHash();
+        checkPaymentStatus();
         console.log('앱 초기화 완료');
     } catch (error) {
         console.error('앱 초기화 중 오류 발생:', error);
@@ -51,6 +54,27 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 // 즉시 실행되는 로그
 console.log('🔥 script.js 즉시 실행 로그 - DOMContentLoaded 이벤트 리스너 등록됨');
+
+// 결제 상태 확인 함수
+function checkPaymentStatus() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const payment = urlParams.get('payment');
+    const step = urlParams.get('step');
+    
+    if (payment === 'success' && step === '3') {
+        console.log('결제 성공 - 메이크업 팁 분석으로 이동');
+        // 결제 성공 시 메이크업 팁 분석 페이지로 이동
+        setTimeout(() => {
+            window.location.href = 'makeup-tips-analysis.html';
+        }, 1000);
+    } else if (payment === 'cancel' || payment === 'fail') {
+        console.log('결제 실패/취소 - 결제 페이지로 이동');
+        // 결제 실패/취소 시 결제 페이지로 이동
+        setTimeout(() => {
+            window.location.href = 'payment.html';
+        }, 1000);
+    }
+}
 
 // URL 해시 확인하여 1단계로 이동
 function checkUrlHash() {
@@ -142,8 +166,10 @@ function setupWebSocket() {
                         handleAnalysisComplete(data.result);
                         break;
                         
-                        
-                    case 'error':
+                    case 'makeup_analysis_complete':
+                        // 메이크업 팁 분석 완료 알림
+                        handleMakeupAnalysisComplete(data.result);
+                        break;case 'error':
                         // 서버 오류 알림
                         console.error('서버 오류:', data.message);
                         showError('서버 오류: ' + data.message);
@@ -202,13 +228,28 @@ function updateAnalysisProgress(progress) {
     }
 }
 
-// AI 분석 완료 처리
+// AI 분석 완료 처리 (WebSocket으로 받은 경우)
 function handleAnalysisComplete(result) {
-    console.log('AI 분석 완료 처리:', result);
+    console.log('🔔 WebSocket으로 AI 분석 완료 처리:', result);
     
     try {
-        // 분석 결과 저장
-        analysisResults = result;
+        // 분석 결과 저장 (WebSocket에서 받은 데이터 구조에 맞게)
+        if (result && result.raw_analysis) {
+            analysisResults = result;
+        } else {
+            // 직접 분석 결과인 경우
+            analysisResults = { raw_analysis: result };
+        }
+        
+        console.log('🔍 저장된 분석 결과:', analysisResults);
+        
+        // sessionStorage에 저장
+        try { 
+            sessionStorage.setItem('beautyAI_analysisResults', JSON.stringify(analysisResults)); 
+            console.log('✅ 분석 결과 sessionStorage에 저장 완료');
+        } catch (e) { 
+            console.error('❌ sessionStorage 저장 실패:', e); 
+        }
         
         // 분석 결과를 화면에 표시
         displayFullAIResponse(analysisResults);
@@ -218,14 +259,51 @@ function handleAnalysisComplete(result) {
         currentStep = 4;
         showDebugLog(`[AUTO] 단계 전환: ${oldStep} → ${currentStep}`);
         updateProgressSteps();
-        showStep(4);  // showCurrentStep() 대신 showStep(4) 호출
+        showStep(4);
         saveAppState();
         
         // 사용자에게 알림
-        showSuccess('AI 분석이 완료되었습니다!');
+        const completionMessage = document.documentElement.lang === 'en' ? 'AI analysis completed!' : 'AI 분석이 완료되었습니다!';
+        showSuccess(completionMessage);
+        
+        // GA4: 분석 완료 이벤트
+        try { if (typeof gtag === 'function') { gtag('event', 'analysis_completed'); } } catch(e){}
         
     } catch (error) {
-        console.error('분석 완료 처리 중 오류:', error);
+        console.error('WebSocket 분석 완료 처리 중 오류:', error);
+    }
+}
+
+// 메이크업 팁 분석 완료 처리 (WebSocket으로 받은 경우)
+function handleMakeupAnalysisComplete(result) {
+    console.log('🔔 WebSocket으로 메이크업 팁 분석 완료 처리:', result);
+    
+    try {
+        // 메이크업 팁 결과 저장
+        if (result && result.analysis) {
+            const makeupTipsResults = { raw_analysis: result.analysis };
+            
+            // sessionStorage에 저장
+            try { 
+                sessionStorage.setItem('beautyAI_makeupTipsResults', JSON.stringify(makeupTipsResults)); 
+                console.log('✅ 메이크업 팁 결과 sessionStorage에 저장 완료');
+            } catch (e) { 
+                console.error('❌ sessionStorage 저장 실패:', e); 
+            }
+            
+            // 메이크업 팁 결과 페이지로 이동
+            const language = document.documentElement.lang === 'en' ? 'en' : 'ko';
+            const resultPage = language === 'en' ? 'makeup-tips-result-en.html' : 'makeup-tips-result.html';
+            
+            console.log('🔔 메이크업 팁 분석 완료, 결과 페이지로 이동:', resultPage);
+            window.location.href = resultPage;
+            
+        } else {
+            console.error('❌ 메이크업 팁 분석 결과 데이터가 올바르지 않음:', result);
+        }
+        
+    } catch (error) {
+        console.error('WebSocket 메이크업 팁 분석 완료 처리 중 오류:', error);
     }
 }
 
@@ -640,6 +718,7 @@ async function restoreAppState() {
                 currentStepPanel.classList.add('active');
             console.log(`단계 ${step} 패널 활성화 완료`);
             
+            
             // 4단계인 경우 분석 결과 및 이미지 표시
             if (step === 4) {
                 console.log('🔍 4단계 UI 표시 - 분석 결과와 이미지 표시');
@@ -647,7 +726,7 @@ async function restoreAppState() {
                 console.log('🔍 analysisResults.raw_analysis 존재:', !!(analysisResults && analysisResults.raw_analysis));
                 console.log('🔍 uploadedImages 존재:', !!uploadedImages);
                 
-                // 4단계 UI 표시 - 분석 결과가 있으면 표시
+                // 일반 얼굴분석 결과 표시
                 if (analysisResults && analysisResults.raw_analysis) {
                     console.log('🔍 4단계에서 분석 결과 표시 시작');
                     displayFullAIResponse(analysisResults);
@@ -659,7 +738,8 @@ async function restoreAppState() {
                     // 분석 결과가 없을 때 로딩 메시지 표시
                     const analysisContent = document.getElementById('complete-analysis-content');
                     if (analysisContent) {
-                        analysisContent.innerHTML = '<div class="loading-message">분석 결과를 불러오는 중...</div>';
+                        const loadingMessage = document.documentElement.lang === 'en' ? 'Loading analysis results...' : '분석 결과를 불러오는 중...';
+                        analysisContent.innerHTML = `<div class="loading-message">${loadingMessage}</div>`;
                     }
                 }
                 
@@ -690,6 +770,7 @@ async function restoreAppState() {
         console.error(`showStep 함수 실행 중 오류:`, error);
     }
 }
+
 
 // 상태 복원 후 UI 업데이트
 let isUIUpdating = false; // 중복 호출 방지 플래그
@@ -1123,7 +1204,6 @@ function setupConsentValidation() {
                     validateConsent();
                 } catch (error) {
                     console.error('validateConsent 오류:', error);
-                    
                 }
             });
         });
@@ -1912,33 +1992,41 @@ async function startAnalysis() {
         
         // 초기 상태 설정
         progressFill.style.width = '0%';
-        updateProgressStatusWithRepeatingTyping('분석 준비 중...', 80);
+        // 언어에 따른 메시지 설정
+        const currentLanguage = document.documentElement.lang === 'en' ? 'en' : 'ko';
+        const preparingMessage = currentLanguage === 'en' ? 'Preparing analysis...' : '분석 준비 중...';
+        updateProgressStatusWithRepeatingTyping(preparingMessage, 80);
         
         // 1단계: 이미지 전처리 (10%) - 타이핑 효과와 독립적으로 실행
         progressFill.style.width = '10%';
-        updateProgressStatusWithRepeatingTyping('이미지 전처리 중...', 80);
+        const preprocessingMessage = currentLanguage === 'en' ? 'Preprocessing images...' : '이미지 전처리 중...';
+        updateProgressStatusWithRepeatingTyping(preprocessingMessage, 80);
         await new Promise(resolve => setTimeout(resolve, 800));
         
         // 2단계: 이미지 업로드 (20%) - 타이핑 효과와 독립적으로 실행
         progressFill.style.width = '20%';
-        updateProgressStatusWithRepeatingTyping('이미지 업로드 중...', 80);
+        const uploadingMessage = currentLanguage === 'en' ? 'Uploading images...' : '이미지 업로드 중...';
+        updateProgressStatusWithRepeatingTyping(uploadingMessage, 80);
         await new Promise(resolve => setTimeout(resolve, 600));
         
         // 3단계: 서버 전송 (30%) - 타이핑 효과와 독립적으로 실행
         progressFill.style.width = '30%';
-        updateProgressStatusWithRepeatingTyping('서버로 전송 중...', 80);
+        const sendingMessage = currentLanguage === 'en' ? 'Sending to server...' : '서버로 전송 중...';
+        updateProgressStatusWithRepeatingTyping(sendingMessage, 80);
         await new Promise(resolve => setTimeout(resolve, 500));
 
 
         try {
             // 4단계: AI 분석 시작 (40%)
             progressFill.style.width = '40%';
-            updateProgressStatusWithRepeatingTyping('AI 분석 시작...', 80);
+            const aiStartMessage = currentLanguage === 'en' ? 'Starting AI analysis...' : 'AI 분석 시작...';
+            updateProgressStatusWithRepeatingTyping(aiStartMessage, 80);
             await new Promise(resolve => setTimeout(resolve, 600));
             
             // 4단계: 백엔드 API 호출 (50%)
             progressFill.style.width = '50%';
-            updateProgressStatusWithRepeatingTyping('AI 모델에 이미지 전송 중...', 80);
+            const aiSendingMessage = currentLanguage === 'en' ? 'Sending images to AI model...' : 'AI 모델에 이미지 전송 중...';
+            updateProgressStatusWithRepeatingTyping(aiSendingMessage, 80);
             
             const formData = new FormData();
             // 3장 사진을 모두 추가
@@ -1950,6 +2038,17 @@ async function startAnalysis() {
             }
             if (uploadedImages['90'] && uploadedImages['90'].file) {
                 formData.append('side90', uploadedImages['90'].file);
+            }
+            
+            // 언어 정보 추가 (현재 페이지의 언어 감지)
+            formData.append('language', currentLanguage);
+            
+            // 세션 ID 추가 (WebSocket에서 생성한 세션 ID 사용)
+            if (window.currentSessionId) {
+                formData.append('sessionId', window.currentSessionId);
+                console.log('클라이언트 세션 ID 전송:', window.currentSessionId);
+            } else {
+                console.warn('클라이언트 세션 ID가 없습니다.');
             }
 
             const response = await fetch(`${getApiBaseUrl()}/api/analyze-face`, {
@@ -1966,21 +2065,44 @@ async function startAnalysis() {
             const result = await response.json();
             
             if (result.success) {
-                // 4단계: 분석 완료 (100%)
-                progressFill.style.width = '100%';
-                updateProgressStatusWithRepeatingTyping('분석 완료!', 80);
-                await new Promise(resolve => setTimeout(resolve, 500));
+                console.log('🔔 HTTP API 응답 성공:', result);
+                console.log('🔍 분석 결과 데이터:', result.analysis);
+                console.log('🔍 세션 ID:', result.sessionId);
                 
-                console.log('서버 응답 성공:', result);
-                console.log('분석 결과 데이터:', result.analysis);
-                console.log('세션 ID:', result.sessionId);
+                // WebSocket으로 이미 처리되었는지 확인
+                if (analysisResults && analysisResults.raw_analysis) {
+                    console.log('✅ WebSocket으로 이미 분석 결과 처리됨, HTTP 응답 무시');
+                    return;
+                }
                 
-                // 분석 결과 저장
-                analysisResults = {
-                    raw_analysis: result.analysis.analysis
-                };
-                try { sessionStorage.setItem('beautyAI_analysisResults', JSON.stringify(analysisResults)); } catch (e) { console.error('sessionStorage 저장 실패:', e); }
-                console.log('전역 변수에 저장된 데이터:', analysisResults);
+                // 분석 결과가 즉시 반환되었는지 확인
+                if (result.analysis && result.analysis.analysis) {
+                    console.log('✅ 즉시 분석 결과 반환됨');
+                    
+                    // 4단계: 분석 완료 (100%)
+                    progressFill.style.width = '100%';
+                    updateProgressStatusWithRepeatingTyping('분석 완료!', 80);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // 분석 결과 저장 (HTTP API 응답 처리)
+                    analysisResults = {
+                        raw_analysis: result.analysis.analysis
+                    };
+                    try { 
+                        sessionStorage.setItem('beautyAI_analysisResults', JSON.stringify(analysisResults)); 
+                        console.log('✅ HTTP API 분석 결과 sessionStorage에 저장 완료');
+                    } catch (e) { 
+                        console.error('❌ sessionStorage 저장 실패:', e); 
+                    }
+                    console.log('🔍 전역 변수에 저장된 데이터:', analysisResults);
+                } else {
+                    console.log('⏳ 분석 결과가 아직 준비되지 않음, 폴링 시작');
+                    // 분석 결과가 아직 준비되지 않은 경우 폴링 시작
+                    if (result.sessionId) {
+                        startAnalysisPolling(result.sessionId);
+                    }
+                    return;
+                }
                 
                 // 분석 진행 상태 모니터링 시작
                 if (result.sessionId) {
@@ -1995,16 +2117,23 @@ async function startAnalysis() {
                 // 분석 완료 후 4단계로 이동
                 console.log('AI 분석 완료! 4단계로 이동합니다.');
                 
-                // 4단계로 자동 이동
-                const oldStep = currentStep;
-                currentStep = 4;
-                showDebugLog(`[AUTO] 단계 전환: ${oldStep} → ${currentStep}`);
-                updateProgressSteps();
-                showStep(4);  // showCurrentStep() 대신 showStep(4) 호출
-                saveAppState();
-                
                 // 분석 결과 표시
                 displayFullAIResponse(analysisResults);
+                
+                // 4단계로 자동 이동 (약간의 지연 후)
+                setTimeout(() => {
+                    console.log('=== AI 분석 완료 후 4단계 자동 이동 ===');
+                    const oldStep = currentStep;
+                    currentStep = 4;
+                    showDebugLog(`[AUTO] 단계 전환: ${oldStep} → ${currentStep}`);
+                    updateProgressSteps();
+                    showStep(4);
+                    saveAppState();
+                    
+                    // 성공 메시지 표시
+                    const completionMessage = document.documentElement.lang === 'en' ? 'AI analysis completed!' : 'AI 분석이 완료되었습니다!';
+                    showSuccess(completionMessage);
+                }, 1000); // 1초 후 이동
                 // GA4: 분석 완료 이벤트
                 try { if (typeof gtag === 'function') { gtag('event', 'analysis_completed'); } } catch(e){}
                 
@@ -2029,22 +2158,107 @@ async function startAnalysis() {
                 stack: apiError.stack,
                 name: apiError.name
             });
-            showError(`분석 처리 중 오류가 발생했습니다: ${apiError.message}`);
+            const processingErrorMessage = document.documentElement.lang === 'en' ? `Error occurred during analysis processing: ${apiError.message}` : `분석 처리 중 오류가 발생했습니다: ${apiError.message}`;
+            showError(processingErrorMessage);
         }
 
     } catch (error) {
         // 오류 발생 시 진행률 표시
         progressFill.style.width = '100%';
-        progressText.textContent = '분석 오류 발생';
+        const errorOccurredMessage = document.documentElement.lang === 'en' ? 'Analysis error occurred' : '분석 오류 발생';
+        progressText.textContent = errorOccurredMessage;
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         console.error('분석 오류:', error);
-        showError(`분석 중 오류가 발생했습니다: ${error.message}`);
+        const generalErrorMessage = document.documentElement.lang === 'en' ? `An error occurred during analysis: ${error.message}` : `분석 중 오류가 발생했습니다: ${error.message}`;
+        showError(generalErrorMessage);
     }
 }
 
-
-
+// 분석 결과 폴링 함수
+async function startAnalysisPolling(sessionId) {
+    console.log('🔄 분석 결과 폴링 시작:', sessionId);
+    
+    const pollInterval = 5000; // 5초마다 폴링
+    const maxAttempts = 24; // 최대 2분 (24 * 5초)
+    let attempts = 0;
+    
+    const poll = async () => {
+        try {
+            attempts++;
+            console.log(`🔄 폴링 시도 ${attempts}/${maxAttempts}`);
+            
+            const response = await fetch(`${getApiBaseUrl()}/api/get-analysis-result/${sessionId}`);
+            
+            if (response.ok) {
+                const result = await response.json();
+                console.log('🔍 폴링 응답:', result);
+                
+                if (result.success && result.analysis && result.analysis.analysis) {
+                    console.log('✅ 폴링으로 분석 결과 획득');
+                    
+                    // 분석 결과 저장
+                    analysisResults = {
+                        raw_analysis: result.analysis.analysis
+                    };
+                    
+                    try { 
+                        sessionStorage.setItem('beautyAI_analysisResults', JSON.stringify(analysisResults)); 
+                        console.log('✅ 폴링 분석 결과 sessionStorage에 저장 완료');
+                    } catch (e) { 
+                        console.error('❌ sessionStorage 저장 실패:', e); 
+                    }
+                    
+                    // 진행률 업데이트
+                    const progressFill = document.getElementById('analysis-progress-fill');
+                    const progressText = document.getElementById('analysis-progress-text');
+                    progressFill.style.width = '100%';
+                    updateProgressStatusWithRepeatingTyping('분석 완료!', 80);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // 분석 결과 표시
+                    displayFullAIResponse(analysisResults);
+                    
+                    // 4단계로 자동 이동
+                    setTimeout(() => {
+                        console.log('=== 폴링으로 분석 완료 후 4단계 자동 이동 ===');
+                        const oldStep = currentStep;
+                        currentStep = 4;
+                        showDebugLog(`[POLLING] 단계 전환: ${oldStep} → ${currentStep}`);
+                        updateProgressSteps();
+                        showStep(4);
+                        saveAppState();
+                        
+                        // 성공 메시지 표시
+                        const completionMessage = document.documentElement.lang === 'en' ? 'AI analysis completed!' : 'AI 분석이 완료되었습니다!';
+                        showSuccess(completionMessage);
+                    }, 1000);
+                    
+                    return; // 폴링 종료
+                }
+            }
+            
+            // 최대 시도 횟수에 도달했거나 오류 발생
+            if (attempts >= maxAttempts) {
+                console.error('❌ 폴링 최대 시도 횟수 초과');
+                const errorMessage = document.documentElement.lang === 'en' ? 'Analysis timeout. Please try again.' : '분석 시간이 초과되었습니다. 다시 시도해주세요.';
+                showError(errorMessage);
+                return;
+            }
+            
+            // 다음 폴링 예약
+            setTimeout(poll, pollInterval);
+            
+        } catch (error) {
+            console.error('❌ 폴링 중 오류:', error);
+            const errorMessage = document.documentElement.lang === 'en' ? 'Error occurred during analysis polling.' : '분석 폴링 중 오류가 발생했습니다.';
+            showError(errorMessage);
+        }
+    };
+    
+    // 첫 번째 폴링 시작
+    setTimeout(poll, pollInterval);
+}
 
 // 4단계에서 이미지 표시하는 함수
 function displayStep4Images() {
@@ -2301,7 +2515,6 @@ async function saveAnalysisResult() {
             </div>
             
             <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; border: 1px solid #e9ecef;">
-                <h3 style="margin-bottom: 15px;">전체 분석 결과</h3>
                 <div style="line-height: 1.8; font-size: 1.1em; white-space: pre-line; word-wrap: break-word;">
                     ${analysisText}
                 </div>
@@ -2598,12 +2811,14 @@ async function checkAnalysisProgress(sessionId) {
                 // 세션 ID 제거
                 sessionStorage.removeItem('beautyAI_analysisSessionId');
                 
-                    showSuccess('AI 분석이 완료되었습니다!');
+                    const completionMessage = document.documentElement.lang === 'en' ? 'AI analysis completed!' : 'AI 분석이 완료되었습니다!';
+                    showSuccess(completionMessage);
                 
             } else if (progress.status === 'failed') {
                 // 분석이 실패한 경우 오류 메시지 표시
                 console.log('분석 실패:', progress.message);
-                showError('AI 분석에 실패했습니다: ' + progress.message);
+                const errorMessage = document.documentElement.lang === 'en' ? 'AI analysis failed: ' + progress.message : 'AI 분석에 실패했습니다: ' + progress.message;
+                showError(errorMessage);
                 
                 // 세션 ID 제거
                 sessionStorage.removeItem('beautyAI_analysisSessionId');
@@ -2696,7 +2911,8 @@ function displayAppliedImprovements() {
         // AI 분석 결과가 없는 경우 기본 메시지
         const item = document.createElement('div');
         item.className = 'applied-item';
-        item.textContent = 'AI 분석 결과를 기다리는 중...';
+        const waitingMessage = document.documentElement.lang === 'en' ? 'Waiting for AI analysis results...' : 'AI 분석 결과를 기다리는 중...';
+        item.textContent = waitingMessage;
         appliedImprovements.appendChild(item);
     }
 }
@@ -2913,6 +3129,14 @@ window.saveAsImages = saveAsImages;
 window.saveStep4AsImage = saveStep4AsImage;
 // 모달 관련 전역 함수들은 제거됨
 
+// 결제 페이지로 이동하는 함수
+function goToPayment() {
+    const currentLang = document.documentElement.lang || 'ko';
+    const paymentUrl = currentLang === 'en' ? 'payment-en.html' : 'payment.html';
+    window.location.href = paymentUrl;
+}
+window.goToPayment = goToPayment;
+
 // 페이지 새로고침 시 경고
 window.addEventListener('beforeunload', function(e) {
     if (currentStep > 1) {
@@ -2921,22 +3145,6 @@ window.addEventListener('beforeunload', function(e) {
     }
 });
 
-// 허브 웹사이트로 이동하는 함수
-function goToHub() {
-    const hostname = window.location.hostname;
-    
-    // localhost나 로컬 IP인 경우
-    if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
-        // 로컬 환경에서는 8080 포트의 허브 웹사이트로 이동
-        window.location.href = `http://${hostname}:8080`;
-    } else {
-        // 외부 도메인인 경우 (Render 배포 시) - 루트 경로로 이동
-        window.location.href = `https://${hostname}/`;
-    }
-}
-
-// 전역 함수로 등록
-window.goToHub = goToHub;
 
 
 

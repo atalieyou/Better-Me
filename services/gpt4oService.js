@@ -1,5 +1,32 @@
 const OpenAI = require('openai');
 const fs = require('fs');
+const axios = require('axios');
+
+// WebSocket 클라이언트 전역 변수 (서버에서 주입)
+let clients = null;
+
+// WebSocket 클라이언트 설정 함수
+function setWebSocketClients(wsClients) {
+    clients = wsClients;
+}
+
+// 진행 상황 전송 함수
+function sendProgressUpdate(sessionId, progress, message) {
+    if (clients) {
+        const client = clients.get(sessionId);
+        if (client && client.readyState === 1) { // WebSocket.OPEN = 1
+            client.send(JSON.stringify({
+                type: 'analysis_progress',
+                progress: progress,
+                message: message,
+                sessionId: sessionId
+            }));
+            console.log(`WebSocket 진행 상황 전송: ${sessionId} - ${progress}% - ${message}`);
+        } else {
+            console.log(`WebSocket 클라이언트를 찾을 수 없음: ${sessionId}`);
+        }
+    }
+}
 
 // OpenAI 클라이언트 초기화
 const openai = new OpenAI({
@@ -10,10 +37,14 @@ const openai = new OpenAI({
  * ChatGPT 5 Thinking을 사용하여 얼굴 이미지 분석 (3장 이미지 지원)
  * @param {Array<string>} imagePaths - 분석할 이미지 파일 경로 배열 [정면, 45도측면, 90도측면]
  * @param {string} sessionId - 분석 세션 ID (진행 상태 추적용)
+ * @param {string} language - 언어 설정 ('ko' 또는 'en')
  * @returns {Promise<Object>} 분석 결과
  */
-async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
+async function analyzeFaceWithChatGPT5(imagePaths, sessionId, language = 'ko') {
     try {
+        // 진행 상황 전송: 분석 시작 (10%)
+        sendProgressUpdate(sessionId, 10, '이미지 인코딩 중...');
+        
         // 3장 이미지를 모두 base64로 인코딩
         const base64Images = [];
         for (const imagePath of imagePaths) {
@@ -23,9 +54,76 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
         }
         
         console.log(`3장 이미지 인코딩 완료: ${base64Images.length}장`);
+        console.log(`🌍 언어 설정: ${language}`);
+        
+        // 진행 상황 전송: 이미지 인코딩 완료 (20%)
+        sendProgressUpdate(sessionId, 20, 'AI 모델에 전송 중...');
 
-        // ChatGPT 5 Thinking API 요청을 위한 프롬프트 (3장 이미지 분석)
-        const systemPrompt = `이제부터 너가 퍼스널 브랜딩 상담 실장이야. 고객이 자신의 외모를 분석해주기를 원하고 있어. 
+        // 언어에 따른 프롬프트 설정
+        const systemPrompt = language === 'en' ? 
+        `You are a personal branding consultant. The customer wants you to analyze their appearance.
+
+**Important: Analyze all 3 images.**
+- **Front Photo**: Overall face shape and balance analysis
+- **45-degree Side Photo**: Side profile and nose, mouth side features analysis  
+- **90-degree Side Photo**: Complete side profile and ear, jawline analysis
+
+Please provide a comprehensive and objective analysis of their current appearance.
+
+**Response Format:**
+Clearly separate each item and **bold** important information.
+
+**1. Face Shape**
+- Which face shape category: oval, round, heart, square, diamond, or oblong
+- Face length: long or short (e.g., long oval, short square)
+
+**2. Face Proportions**
+- Upper, middle, lower face ratio analysis
+- Overall balance assessment
+
+**3. Skin Condition**
+- Acne, scars, pore size, oiliness, skin tone, etc.
+- Wrinkle analysis such as nasolabial folds
+- Clear classification of skin type and condition
+
+**4. Eyes**
+- Double eyelid presence, eye size, inner/outer corner degree
+- Eye corner position, distance between eyes
+- Size of aegyo-sal (under-eye fat)
+- Overall eye impression and characteristics
+
+**5. Nose**
+- Nose length, width, nostril and nose tip ratio
+- Overall nose balance and features
+
+**6. Mouth**
+- Lip thickness, mouth size, mouth corner position
+- Mouth protrusion
+- Harmony with overall face
+
+**7. Conclusion**
+- Atmosphere the face creates (elegant, cute, chic, calm, sophisticated, etc.)
+- Suitable makeup keywords: juicy makeup, glow makeup, MLBB makeup, etc.
+- Suitable hairstyle keywords: layered cut, wave perm, pomade, etc.
+
+**Rating Criteria:**
+ **A+**: Perfect harmony and proportions, skin condition, meets all popular/international beauty standards
+ **A**: Very excellent level
+ **A-**: Upper tier with slight room for improvement
+ **B+**: Above average
+ **B**: Average
+ **C**: Below average
+ **D**: Significantly deviates from standards in harmony or proportions
+
+Example: Cha Eun-woo would receive **A+** points.
+
+**Important:** Clearly separate each item in English, avoid unnecessary repetition or lengthy explanations. Maintain an objective and professional tone.
+
+Finally, don't ask me any more questions or make recommendations, just finish.
+
+**CRITICAL LANGUAGE REQUIREMENT: You must respond entirely in English.**` :
+
+        `이제부터 너가 퍼스널 브랜딩 상담 실장이야. 고객이 자신의 외모를 분석해주기를 원하고 있어. 
 
 **중요: 3장의 이미지를 모두 분석해주세요.**
 - **정면 사진**: 전체적인 얼굴형과 균형감 분석
@@ -47,11 +145,13 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
 
 **3. 피부 상태**
 - 여드름, 흉터, 모공크기, 유분기, 피부 색감 등
+- 팔자주름 등 주름 분석
 - 피부 타입과 상태를 명확하게 분류
 
 **4. 눈**
 - 쌍커풀 유무, 눈동자 크기, 앞/뒤 트임 정도
 - 눈꼬리 위치, 눈과 눈 사이 거리
+- 애교살의 크기
 - 전체적인 눈의 인상과 특징
 
 **5. 코**
@@ -60,6 +160,7 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
 
 **6. 입**
 - 입술 두께, 입 크기, 입꼬리 위치
+- 입의 돌출여부
 - 얼굴 전체와의 조화도
 
 **7. 결론**
@@ -76,7 +177,7 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
 
 예시: 차은우는 **A+** 포인트를 받게 됩니다.
 
-**중요:** 각 항목은 명확하게 구분하고, 불필요한 반복이나 장황한 설명은 피해주세요. 객관적이고 전문적인 톤을 유지해주세요.
+**중요:** 각 항목은 한국어로 명확하게 구분하고, 불필요한 반복이나 장황한 설명은 피해주세요. 객관적이고 전문적인 톤을 유지해주세요.
 
 마지막으로 더이상 나에게 권유나 질문을 하지말고 마무리해줘`;
 
@@ -97,7 +198,9 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
                             content: [
                                 {
                                     type: "text",
-                                    text: "아래 3장의 이미지를 모두 참고하여 앞서 말한 규칙대로 종합적으로 분석해주세요. 각 이미지의 특징을 모두 반영하여 분석해주세요."
+                                    text: language === 'en' ? 
+                                        "Please comprehensively analyze all 3 images below according to the rules mentioned above. Analyze by reflecting all the characteristics of each image." :
+                                        "아래 3장의 이미지를 모두 참고하여 앞서 말한 규칙대로 종합적으로 분석해주세요. 각 이미지의 특징을 모두 반영하여 분석해주세요."
                                 },
                                 {
                                     type: "image_url",
@@ -163,6 +266,9 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
             }
         }
 
+        // 진행 상황 전송: AI 분석 시작 (30%)
+        sendProgressUpdate(sessionId, 30, 'AI 모델에서 분석 중...');
+        
         // 모델들을 순서대로 시도 (ChatGPT 5 모델 우선, gpt-4o 제거)
         const models = ["gpt-5", "gpt-4-turbo"];
         let response = null;
@@ -170,8 +276,15 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
         
         for (const model of models) {
             try {
+                // 진행 상황 전송: 모델 시도 중
+                sendProgressUpdate(sessionId, 40, 'AI 모델에서 분석 중...');
+                
                 response = await tryModel(model);
-                if (response) break;
+                if (response) {
+                    // 진행 상황 전송: 분석 완료
+                    sendProgressUpdate(sessionId, 80, '분석 결과 처리 중...');
+                    break;
+                }
             } catch (error) {
                 // API 할당량 초과 에러 확인
                 if (error.message.includes('429') || error.message.includes('quota')) {
@@ -218,6 +331,9 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
         const rawAnalysis = response.choices[0].message.content;
         console.log('AI 분석 완료:', rawAnalysis);
 
+        // 진행 상황 전송: 포인트 추출 중 (90%)
+        sendProgressUpdate(sessionId, 90, '분석 결과 정리 중...');
+
         // 포인트 추출 (JSON 형식이 아닌 경우를 대비)
         let point = '분석 불가';
         try {
@@ -239,6 +355,9 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
             console.log('포인트 추출 실패, 기본값 사용:', e.message);
         }
 
+        // 진행 상황 전송: 완료 (100%)
+        sendProgressUpdate(sessionId, 100, '분석 완료!');
+
         return {
             raw_analysis: rawAnalysis,
             point: point
@@ -250,180 +369,240 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId) {
     }
 }
 
-/**
- * ChatGPT 5 Thinking을 사용하여 메이크업 팁 생성
- * @param {string} analysisResult - 얼굴 분석 결과
- * @returns {Promise<Object>} 메이크업 팁 결과
- */
-async function getMakeupTips(analysisResult) {
-    try {
-        console.log('메이크업 팁 생성 시작...');
 
-        // 메이크업 팁 생성 프롬프트
-        const makeupSystemPrompt = `이제는 너가 메이크업 실장님이야. 앞서 퍼스널브랜딩 상담 실장이 분석한 결과를 토대로 나에게 맞춤형 메이크업 및 시술 팁을 알려줘.
+/**
+ * 메이크업 팁 분석 함수 (얼굴분석 결과 기반)
+ * @param {Array} imagePaths - 분석할 이미지 경로 배열 (참고용)
+ * @param {string} sessionId - 세션 ID
+ * @param {string} language - 언어 설정 ('ko' 또는 'en')
+ * @param {string} faceAnalysisResult - 기존 얼굴분석 결과
+ * @returns {Promise<Object>} 메이크업 팁 분석 결과
+ */
+async function analyzeMakeupTipsWithImages(imagePaths, sessionId, language = 'ko', faceAnalysisResult = null) {
+    try {
+        console.log('메이크업 팁 분석 시작...');
+        console.log(`🌍 언어 설정: ${language}`);
+        
+        // 진행 상황 전송: 메이크업 팁 분석 시작 (10%)
+        sendProgressUpdate(sessionId, 10, '얼굴분석 결과 확인 중...');
+        console.log(`📋 얼굴분석 결과 제공 여부: ${faceAnalysisResult ? '있음' : '없음'}`);
+        
+        // 얼굴분석 결과가 없으면 오류
+        if (!faceAnalysisResult) {
+            const errorMessage = language === 'en' 
+                ? 'Face analysis results are required. Please complete face analysis first.'
+                : '얼굴분석 결과가 필요합니다. 먼저 얼굴분석을 완료해주세요.';
+            throw new Error(errorMessage);
+        }
+        
+        // 진행 상황 전송: 얼굴분석 결과 확인 완료 (20%)
+        sendProgressUpdate(sessionId, 20, '메이크업 팁 생성 중...');
+        
+        console.log('얼굴분석 결과를 기반으로 메이크업 팁 생성');
+        
+        // 언어에 따른 시스템 프롬프트 설정
+        const systemPrompt = language === 'en' ?
+            `You are now a makeup director. I will provide you with detailed facial analysis results from a personal branding consultant. Based on this analysis, provide makeup and styling tips that are optimized for the face, complementing weaknesses and highlighting strengths, rather than giving generic advice.
+
+**Response Format:**
+Clearly separate each item and provide onlypractical tips in detail based on both the images and facial analysis results to complement strengths and weaknesses.
+
+**1. Eyes**
+- Makeup tips to complement the eye shape and strengths/weaknesses that can be confirmed from the images and analysis content
+- Treatment tips to complement the eye shape and strengths/weaknesses that can be confirmed from the images and analysis content (say "none" if there are none)
+
+**2. Nose**
+- Makeup tips to complement the nose shape and strengths/weaknesses that can be confirmed from the images and analysis content
+- Treatment tips to complement the nose shape and strengths/weaknesses that can be confirmed from the images and analysis content (say "none" if there are none)
+
+**3. Lips**
+- Treatment tips to complement the lip shape and strengths/weaknesses that can be confirmed from the images and analysis content (say "none" if there are none)
+
+**4. Skin**
+- Base makeup tips for the skin type and characteristics mentioned in the analysis
+- Concealer tips for any skin concerns identified
+- Treatment tips to complement the skin strengths/weaknesses that can be confirmed from the images and analysis content (say "none" if there are none)
+
+**5. Contouring/Face Proportions**
+- Contouring tips for face shape and proportions that can be confirmed from the images and analysis content
+- Highlighter and shading placement that can be confirmed from the images and analysis content
+- Treatment tips to complement the facial contour and proportions strengths/weaknesses that can be confirmed from the images and analysis content (say "none" if there are none)
+
+**7. Hairstyling Tips**
+- 3 suitable hairstyles based on face shape and features from the analysis and reasons
+
+**Important:** Write each item specifically and practically based on the facial analysis results. Focus on core tips that directly address the analyzed features.
+
+Finally, don't ask me any more questions or make recommendations, just finish.` :
+            `이제는 너가 메이크업 실장님이야. 퍼스널브랜딩 상담 실장의 상세한 얼굴분석 결과를 제공할 거야. 이 분석 결과를 바탕으로 뻔한 얘기 말고 얼굴에 최적화된 단점을 보완하고 장점을 강조하는 메이크업 및 스타일링 팁을 제공해줘.
 
 **답변 형식:**
-각 항목은 명확하게 구분하고, 실용적인 팁을 제공해주세요.
+각 항목은 명확하게 구분하고, 이미지와 얼굴분석 결과를 기반으로 장단점을 보완할 수 있는 실용적인 팁만을 매우 구체적으로 제공해주세요.
 
 **1. 눈**
-- 눈 모양에 맞는 아이메이크업 기법
-- 추천 색상과 브랜드
-- 쌍커풀, 눈매 교정 팁
+- 이미지와 분석 내용에서 확인할 수 있는 눈의 모양과 장단점을 보완할 수 있는 메이크업 팁
+- 이미지와 분석 내용에서 확인할 수 있는 눈의 모양과 장단점을 보완하는 시술 팁
 
 **2. 코**
-- 코 윤곽 교정 기법
-- 하이라이터와 섀딩 활용법
-- 코 길이/너비 조절 팁
+- 이미지와 분석 내용에서 확인할 수 있는 코의 모양과 장단점을 보완할 수 있는 메이크업 팁
+- 이미지와 분석 내용에서 확인할 수 있는 코의 모양과 장단점을 보완하는 시술 팁
 
 **3. 입**
-- 입술 모양에 맞는 립 메이크업
-- 립 라이너 활용법
-- 추천 립스틱 색상
+- 이미지와 분석 내용에서 확인할 수 있는 입술의 모양과 장단점을 보완할 수 있는 메이크업 팁
+- 이미지와 분석 내용에서 확인할 수 있는 압술의 모양과 장단점을 보완하는 시술 팁
 
 **4. 피부**
-- 피부 타입별 베이스 메이크업
-- 프라이머와 파운데이션 선택법
-- 컨실러 활용 팁
+- 분석에서 언급된 피부 타입과 특징에 맞는 베이스 메이크업 팁
+- 분석에서 식별된 피부 고민에 대한 컨실러 활용 팁
+- 이미지와 분석 내용에서 확인할 수 있는 피부 장단점을 보완하는 시술 팁
 
-**5. 윤곽**
-- 얼굴형에 맞는 컨투어링
-- 하이라이터와 섀딩 위치
-- 브론저 활용법
+**5. 윤곽/얼굴비율**
+- 이미지와 분석 내용에서 확인할 수 있는 얼굴형, 얼굴비율에 맞는 컨투어링 팁
+- 이미지와 분석 내용에서 확인할 수 있는 하이라이터와 섀딩 위치
+- 이미지와 분석 내용에서 확인할 수 있는 윤곽 및 얼굴비율을 장단점을 보완하는 시술 팁(없으면 없다고 해줘)
 
-**6. 시술 팁**
-- 전문적인 시술 추천
-- 주의사항과 관리법
-- 예상 비용 범위
+**7. 헤어스타일링 팁**
+- 얼굴분석에서 나온 얼굴형과 특징을 바탕으로 한 헤어스타일 3가지 및 이유
 
-**7. 유튜브 영상 링크**
-- 단계별 메이크업 튜토리얼
-- 전문가 추천 영상
-
-**중요:** 각 항목은 구체적이고 실용적으로 작성해주세요. 불필요한 설명은 피하고 핵심 팁에 집중해주세요.
+**중요:** 각 항목은 얼굴분석 결과를 바탕으로 구체적이고 실용적으로 작성해주세요. 분석된 특징을 직접적으로 해결하는 핵심 팁에 집중해주세요.
 
 마지막으로 더이상 나에게 권유나 질문을 하지말고 마무리해줘`;
 
-        // 모델별 시도 함수
-        async function tryModel(modelName) {
+        // 이미지 인코딩 함수
+        const encodeImage = (imagePath) => {
             try {
-                console.log(`메이크업 팁 모델 ${modelName} 시도 중...`);
-                // 모델별 파라미터 설정
-                const params = {
-                    model: modelName,
-                    messages: [
-                        {
-                            role: "system",
-                            content: makeupSystemPrompt
-                        },
-                        {
-                            role: "user",
-                            content: `앞서 분석한 결과는 다음과 같습니다: ${analysisResult}`
-                        }
-                    ]
-                };
-
-                // gpt-5 모델은 max_completion_tokens만, 다른 모델은 temperature와 max_tokens 사용
-                if (modelName === "gpt-5") {
-                    // gpt-5는 max_completion_tokens 파라미터 지원 안함
-                    // gpt-5는 temperature 파라미터 지원 안함
-                    // gpt-5에서는 max_tokens 파라미터를 설정하지 않음
-                } else {
-                    params.temperature = 0.7;
-                    params.max_tokens = 4000; // gpt-4 모델들의 제한에 맞춤
-                }
-
-                const response = await openai.chat.completions.create(params);
-
-                const content = response.choices[0]?.message?.content;
-                // 더 유연한 거부 감지 (JSON 형식이 아니어도 분석 내용이 있으면 성공으로 간주)
-                if (content && 
-                    !content.includes("I'm sorry") && 
-                    !content.includes("can't assist") &&
-                    !content.includes("I'm unable") &&
-                    !content.includes("unable to analyze") &&
-                    !content.includes("죄송하지만") &&
-                    !content.includes("분석할 수 없습니다") &&
-                    content.length > 50) {  // 최소 50자 이상의 내용이 있어야 함
-                    console.log(`메이크업 팁 모델 ${modelName} 성공!`);
-                    return response;
-                } else {
-                    console.log(`메이크업 팁 모델 ${modelName} 거부됨:`, content);
-                    return null;
-                }
+                const imageBuffer = fs.readFileSync(imagePath);
+                const base64Image = imageBuffer.toString('base64');
+                return `data:image/jpeg;base64,${base64Image}`;
             } catch (error) {
-                console.log(`메이크업 팁 모델 ${modelName} 오류:`, error.message);
-                // API 할당량 초과 에러는 다시 던지기
-                if (error.message.includes('429') || error.message.includes('quota')) {
-                    throw error;
-                }
+                console.error('이미지 인코딩 오류:', error);
                 return null;
             }
-        }
+        };
 
-        // 모델들을 순서대로 시도 (ChatGPT 5 모델 우선, gpt-4o 제거)
+        // 3장 이미지 인코딩
+        console.log('3장 이미지 인코딩 시작...');
+        const encodedImages = imagePaths.map((path, index) => {
+            const encoded = encodeImage(path);
+            if (encoded) {
+                console.log(`이미지 ${index + 1} 인코딩 완료`);
+            } else {
+                console.error(`이미지 ${index + 1} 인코딩 실패:`, path);
+            }
+            return encoded;
+        }).filter(img => img !== null);
+
+        console.log(`3장 이미지 인코딩 완료: ${encodedImages.length}장`);
+
+        // 모델별 시도 함수
+        const tryModel = async (modelName) => {
+            console.log(`모델 ${modelName} 시도 중...`);
+            
+            // 이미지가 포함된 메시지 구성
+            const userMessage = {
+                role: "user",
+                content: [
+                    {
+                        type: "text",
+                        text: language === 'en' ?
+                            `Based on the following detailed facial analysis results and the provided images, please provide personalized makeup and styling tips:
+
+${faceAnalysisResult}
+
+Please analyze the facial features, face shape, and characteristics from both the analysis and the images to provide specific makeup and hairstyling recommendations.` :
+                            `다음의 상세한 얼굴분석 결과와 제공된 이미지를 바탕으로 맞춤형 메이크업 및 스타일링 팁을 제공해주세요:
+
+${faceAnalysisResult}
+
+분석 결과와 이미지에서 얼굴 특징, 얼굴형, 특성들을 종합적으로 분석하여 구체적인 메이크업과 헤어스타일링 추천을 제공해주세요.`
+                    }
+                ]
+            };
+
+            // 인코딩된 이미지들을 메시지에 추가
+            encodedImages.forEach((encodedImage, index) => {
+                const imageType = index === 0 ? '정면' : index === 1 ? '45도 측면' : '90도 측면';
+                userMessage.content.push({
+                    type: "image_url",
+                    image_url: {
+                        url: encodedImage,
+                        detail: "high"
+                    }
+                });
+            });
+
+            const params = {
+                model: modelName,
+                messages: [
+                    {
+                        role: "system",
+                        content: systemPrompt
+                    },
+                    userMessage
+                ],
+                max_tokens: 4000,
+                temperature: 0.7
+            };
+
+            const response = await axios.post('https://api.openai.com/v1/chat/completions', params, {
+                headers: {
+                    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            return response.data.choices[0].message.content;
+        };
+
+        // 진행 상황 전송: AI 모델 호출 시작 (30%)
+        sendProgressUpdate(sessionId, 30, 'AI 모델에 요청 전송 중...');
+        
+        // 모델 순서대로 시도
         const models = ["gpt-5", "gpt-4-turbo"];
-        let response = null;
-        let quotaExceeded = false;
+        let result = null;
         
         for (const model of models) {
             try {
-                response = await tryModel(model);
-                if (response) break;
+                // 진행 상황 전송: 모델 시도 중
+                sendProgressUpdate(sessionId, 40, 'AI 모델에서 팁 생성 중...');
+                
+                result = await tryModel(model);
+                console.log(`모델 ${model} 성공!`);
+                
+                // 진행 상황 전송: 팁 생성 완료
+                sendProgressUpdate(sessionId, 80, '메이크업 팁 정리 중...');
+                break;
             } catch (error) {
-                // API 할당량 초과 에러 확인
-                if (error.message.includes('429') || error.message.includes('quota')) {
-                    quotaExceeded = true;
-                    console.log(`메이크업 팁 모델 ${model} 할당량 초과:`, error.message);
+                console.log(`모델 ${model} 실패:`, error.message);
+                if (model === models[models.length - 1]) {
+                    throw error;
                 }
             }
         }
-        
-        if (!response) {
-            if (quotaExceeded) {
-                console.log('메이크업 팁 API 할당량이 초과되었습니다.');
-                throw new Error('API 할당량이 초과되었습니다. OpenAI 계정의 결제 정보를 확인해주세요.');
-            } else {
-                console.log('모든 모델이 메이크업 팁 생성을 거부함. AI 거부 응답 생성...');
-                // AI 거부 응답 생성
-                const refusalResponse = {
-                    choices: [{
-                        message: {
-                            content: JSON.stringify({
-                                error: "ai_refusal",
-                                reason: "모든 AI 모델이 메이크업 팁 생성을 거부했습니다",
-                                details: {
-                                    reason: "분석 결과가 부족하거나 AI 모델 정책상 팁을 생성할 수 없습니다",
-                                    suggestions: [
-                                        "더 자세한 얼굴 분석을 먼저 진행해주세요",
-                                        "분석 결과를 다시 확인해주세요"
-                                    ]
-                                }
-                            })
-                        }
-                    }]
-                };
-                
-                return {
-                    raw_makeup_tips: refusalResponse.choices[0].message.content
-                };
-            }
+
+        if (!result) {
+            throw new Error('모든 모델에서 분석 실패');
         }
 
-        // 성공적인 응답 처리
-        const rawMakeupTips = response.choices[0].message.content;
-        console.log('메이크업 팁 생성 완료:', rawMakeupTips);
-
+        console.log('메이크업 팁 분석 완료');
+        
+        // 진행 상황 전송: 완료 (100%)
+        sendProgressUpdate(sessionId, 100, '메이크업 팁 생성 완료!');
+        
         return {
-            raw_makeup_tips: rawMakeupTips
+            analysis: result,
+            sessionId: sessionId,
+            language: language
         };
 
     } catch (error) {
-        console.error('메이크업 팁 생성 중 오류:', error);
+        console.error('메이크업 팁 분석 중 오류:', error);
         throw error;
     }
 }
 
 module.exports = {
     analyzeFaceWithChatGPT5,
-    getMakeupTips
+    analyzeMakeupTipsWithImages,
+    setWebSocketClients
 };

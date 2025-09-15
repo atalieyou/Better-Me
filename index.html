@@ -26,13 +26,53 @@
 
         .header {
             text-align: center;
-            margin-bottom: 60px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .language-switcher {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+            padding-right: 20px;
+        }
+
+        .language-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 13px;
+            font-weight: 400;
+            color: #666;
+        }
+
+        .language-text {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .language-text:hover {
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .language-text.active {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .language-separator {
+            color: #ccc;
+            font-weight: 300;
         }
 
         .logo {
             max-width: 300px;
             height: auto;
-            margin-bottom: 20px;
+            margin-bottom: 60px;
         }
 
         .services {
@@ -61,6 +101,16 @@
             transform: translateY(-3px);
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
         }
+
+        .disabled-service {
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .disabled-service:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+        }
+
 
         .service-card:nth-child(1) {
             background-color: #D9B7B6;
@@ -137,6 +187,20 @@
                 padding: 20px 15px;
             }
 
+            .language-switcher {
+                margin-bottom: 15px;
+                padding-right: 15px;
+            }
+
+            .language-toggle {
+                font-size: 11px;
+                gap: 6px;
+            }
+
+            .language-text {
+                padding: 3px 6px;
+            }
+
             .logo {
                 max-width: 250px;
             }
@@ -185,24 +249,34 @@
 <body>
     <div class="container">
         <div class="header">
+            <div class="language-switcher">
+                <div class="language-toggle">
+                    <span class="language-text active" onclick="switchLanguage('ko')">한국어</span>
+                    <span class="language-separator">|</span>
+                    <span class="language-text" onclick="switchLanguage('en')">Eng</span>
+                </div>
+                                </div>
             <img src="better-me-logo.png" alt="Better Me" class="logo">
                             </div>
                             
         <div class="services">
-            <div class="service-card" onclick="openService('face-analysis.html')">
+            <div class="service-card" onclick="openFaceAnalysis()">
                 <img src="나한테 딱 맞는 얼굴분석.png" alt="나한테 딱 맞는 얼굴분석" class="service-title-image">
                 </div>
 
-            <div class="service-card" onclick="openService('MakeupTipsService/index.html')">
-                <img src="나만의 메이크업 팁 만들기.png" alt="나만의 메이크업 팁 만들기" class="service-title-image">
+            <div class="service-card disabled-service">
+                <div class="coming-soon-container">
+                    <img src="Coming Soon.png" alt="Coming Soon" class="coming-soon-image">
+                    <img src="나만의 메이크업 팁 만들기.png" alt="나만의 메이크업 팁 만들기" class="service-title-image">
+                </div>
             </div>
             
             <div class="service-card">
                 <div class="coming-soon-container">
                     <img src="Coming Soon.png" alt="Coming Soon" class="coming-soon-image">
                     <img src="퍼스널 컬러 검사하기.png" alt="퍼스널 컬러 검사하기" class="service-title-image">
-                </div>
-            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -210,16 +284,133 @@
         <div class="footer-content">
             <div class="company-name">베럴미_Better Me</div>
             <div class="footer-info">
-                <p>대표 유지현 | 사업자 등록번호 406-05-28536</p>
-                <p>전화번호 : 010-2932-4307</p>
-                <p>E-mail : atalieyou@gmail.com</p>
-                <p>주소 : 인천광역시 계양구 서운산단로1길 19 (서운동) DSE 320호</p>
+                <p data-ko="대표 유지현 | 사업자 등록번호 406-05-28536" data-en="CEO Yoo Ji-hyeon | Business Registration Number 406-05-28536">대표 유지현 | 사업자 등록번호 406-05-28536</p>
+                <p data-ko="전화번호 : 010-2932-4307" data-en="Phone : 010-2932-4307">전화번호 : 010-2932-4307</p>
+                <p data-ko="E-mail : atalieyou@gmail.com" data-en="E-mail : atalieyou@gmail.com">E-mail : atalieyou@gmail.com</p>
+                <p data-ko="주소 : 인천광역시 계양구 서운산단로1길 19 (서운동) DSE 320호" data-en="Address : 19 Seoun-Sandan-ro 1-gil, Gyeyang-gu, Incheon (Seoun-dong) DSE 320">주소 : 인천광역시 계양구 서운산단로1길 19 (서운동) DSE 320호</p>
             </div>
         </div>
     </footer>
 
     <script>
+        // 다국어 텍스트 데이터
+        const translations = {
+            ko: {
+                companyName: "베럴미_Better Me",
+                faceAnalysis: "나한테 딱 맞는 얼굴분석",
+                makeupTips: "나만의 메이크업 팁 만들기",
+                personalColor: "퍼스널 컬러 검사하기",
+                comingSoon: "Coming Soon"
+            },
+            en: {
+                companyName: "Better Me",
+                faceAnalysis: "Personalized Face Analysis",
+                makeupTips: "Create Your Makeup Tips",
+                personalColor: "Personal Color Test",
+                comingSoon: "Coming Soon"
+            }
+        };
+
+        // 현재 언어 상태
+        let currentLanguage = 'ko';
+
+        // 브라우저 언어 자동 감지
+        function detectBrowserLanguage() {
+            const browserLang = navigator.language || navigator.userLanguage;
+            if (browserLang.startsWith('en')) {
+                return 'en';
+            }
+            return 'ko';
+        }
+
+        // 언어 전환 함수
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            
+            // 버튼 활성화 상태 변경
+            document.querySelectorAll('.language-text').forEach(text => {
+                text.classList.remove('active');
+            });
+            document.querySelector(`[onclick="switchLanguage('${lang}')"]`).classList.add('active');
+            
+            // 텍스트 업데이트
+            updateTexts(lang);
+            
+            // localStorage에 언어 설정 저장
+            localStorage.setItem('preferredLanguage', lang);
+        }
+
+        // 텍스트 업데이트 함수
+        function updateTexts(lang) {
+            const t = translations[lang];
+            
+            // 회사명 업데이트
+            document.querySelector('.company-name').textContent = t.companyName;
+            
+            // data 속성이 있는 요소들의 텍스트 업데이트
+            document.querySelectorAll('[data-ko][data-en]').forEach(element => {
+                element.textContent = element.getAttribute(`data-${lang}`);
+            });
+
+            // 서비스 박스 이미지 업데이트
+            updateServiceImages(lang);
+        }
+
+        // 서비스 박스 이미지 업데이트 함수
+        function updateServiceImages(lang) {
+            const imagePaths = {
+                ko: {
+                    faceAnalysis: '나한테 딱 맞는 얼굴분석.png',
+                    makeupTips: '나만의 메이크업 팁 만들기.png',
+                    personalColor: '퍼스널 컬러 검사하기.png'
+                },
+                en: {
+                    faceAnalysis: 'BetterMeHub/Personalized Face Analysis.png',
+                    makeupTips: 'BetterMeHub/Create My Own Makeup Tips.png',
+                    personalColor: 'BetterMeHub/Personal Color Test.png'
+                }
+            };
+
+            // 첫 번째 박스 (얼굴분석)
+            const firstBoxImg = document.querySelector('.service-card:nth-child(1) .service-title-image');
+            if (firstBoxImg) {
+                firstBoxImg.src = imagePaths[lang].faceAnalysis;
+            }
+
+            // 두 번째 박스 (메이크업 팁)
+            const secondBoxImg = document.querySelector('.service-card:nth-child(2) .service-title-image');
+            if (secondBoxImg) {
+                secondBoxImg.src = imagePaths[lang].makeupTips;
+            }
+
+            // 세 번째 박스 (퍼스널 컬러)
+            const thirdBoxImg = document.querySelector('.service-card:nth-child(3) .service-title-image');
+            if (thirdBoxImg) {
+                thirdBoxImg.src = imagePaths[lang].personalColor;
+            }
+        }
+
+        // 페이지 로드 시 언어 설정
+        function initializeLanguage() {
+            // localStorage에서 저장된 언어 설정 확인
+            const savedLang = localStorage.getItem('preferredLanguage');
+            const browserLang = detectBrowserLanguage();
+            
+            // 저장된 언어가 있으면 사용, 없으면 브라우저 언어 사용
+            const initialLang = savedLang || browserLang;
+            
+            if (initialLang !== 'ko') {
+                switchLanguage(initialLang);
+            }
+        }
+
         function openService(url) {
+            // 메이크업 팁 관련 서비스는 비활성화 (호버 효과만 유지)
+            if (url && (url.includes('MakeupTipsService') || url.includes('makeup') || url.includes('Makeup'))) {
+                console.log('메이크업 팁 서비스는 현재 비활성화되어 있습니다.');
+                return false;
+            }
+            
             if (url) {
                 if (url.startsWith('http')) {
                     window.open(url, '_blank');
@@ -229,13 +420,25 @@
             }
         }
 
-        // 서비스 카드 클릭 효과
-        document.querySelectorAll('.service-card').forEach(card => {
-            card.addEventListener('click', function() {
-                this.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    this.style.transform = '';
-                }, 150);
+        // 언어에 따른 얼굴분석 서비스 열기
+        function openFaceAnalysis() {
+            const currentLang = currentLanguage || 'ko';
+            const faceAnalysisUrl = currentLang === 'en' ? 'face-analysis-en.html' : 'face-analysis.html';
+            openService(faceAnalysisUrl);
+        }
+
+        // 페이지 로드 시 언어 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeLanguage();
+            
+            // 서비스 카드 클릭 효과 (모든 서비스에 적용)
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95) !important';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
             });
         });
     </script>

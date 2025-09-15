@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Better Me - 헤어/메이크업 팁 제작</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <img src="better-me-logo.png" alt="Better Me" class="main-logo">
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="payment-container">
+            <div class="payment-header">
+                <h1><i class="fas fa-palette"></i> 헤어/메이크업 팁 제작</h1>
+            </div>
+
+            <div class="payment-content">
+                <!-- Service Description -->
+                <div class="service-description">
+                    <h2><i class="fas fa-star"></i> 서비스 내용</h2>
+                    <div class="service-features">
+                        <div class="feature-item">
+                            <i class="fas fa-cut"></i>
+                            <div>
+                                <h3>개인 맞춤 헤어스타일 추천</h3>
+                                <p>얼굴형과 헤어라인을 분석하여 최적의 헤어스타일을 추천해드립니다</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-paint-brush"></i>
+                            <div>
+                                <h3>맞춤형 메이크업 가이드</h3>
+                                <p>피부톤과 얼굴 특징에 맞는 메이크업 스타일과 제품을 추천해드립니다</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-mobile-alt"></i>
+                            <div>
+                                <h3>상세한 스타일링 가이드</h3>
+                                <p>단계별 메이크업 방법과 헤어스타일링 팁을 제공합니다</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing -->
+                <div class="pricing-section">
+                    <h2><i class="fas fa-tags"></i> 가격</h2>
+                    <div class="price-card">
+                        <div class="price-header">
+                            <h3>헤어/메이크업 팁 패키지</h3>
+                            <div class="price-amount">
+                                <span class="currency">₩</span>
+                                <span class="amount">29,000</span>
+                            </div>
+                        </div>
+                        <ul class="price-features">
+                            <li><i class="fas fa-check"></i> 개인 맞춤 헤어스타일 3가지 추천</li>
+                            <li><i class="fas fa-check"></i> 메이크업 스타일 3가지 가이드</li>
+                            <li><i class="fas fa-check"></i> 제품 추천 및 구매 가이드</li>
+                            <li><i class="fas fa-check"></i> 단계별 스타일링 방법</li>
+                            <li><i class="fas fa-check"></i> 30일간 무제한 재조회 가능</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="payment-methods">
+                    <h2><i class="fas fa-credit-card"></i> 결제 방법</h2>
+                    <div class="payment-options">
+                        <div class="payment-option">
+                            <input type="radio" id="kakao-pay" name="payment" value="kakao" checked>
+                            <label for="kakao-pay">
+                                <div class="kakao-logo">KakaoPay</div>
+                                <span>카카오페이</span>
+                            </label>
+                        </div>
+                        <div class="payment-option">
+                            <input type="radio" id="toss-pay" name="payment" value="toss">
+                            <label for="toss-pay">
+                                <div class="toss-logo">TOSS</div>
+                                <span>토스페이</span>
+                            </label>
+                        </div>
+                        <div class="payment-option">
+                            <input type="radio" id="card" name="payment" value="card">
+                            <label for="card">
+                                <i class="fas fa-credit-card"></i>
+                                <span>신용카드</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Payment Form -->
+                <div class="card-payment-form" id="card-form" style="display: none;">
+                    <h3><i class="fas fa-credit-card"></i> 카드 정보 입력</h3>
+                    <div class="card-form-container">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="card-number">카드 번호</label>
+                                <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="expiry-date">유효기간</label>
+                                <input type="text" id="expiry-date" placeholder="MM/YY" maxlength="5" inputmode="numeric">
+                            </div>
+                            <div class="form-group">
+                                <label for="cvv">CVV</label>
+                                <input type="text" id="cvv" placeholder="123" maxlength="3" inputmode="numeric">
+                            </div>
+                        </div>
+                        <div class="form-row name-password-row">
+                            <div class="form-group">
+                                <label for="card-name">카드 소유자명</label>
+                                <input type="text" id="card-name" placeholder="홍길동">
+                            </div>
+                            <div class="form-group">
+                                <label for="card-password">카드 비밀번호 (앞 2자리)</label>
+                                <input type="password" id="card-password" placeholder="**" maxlength="2" inputmode="numeric">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="birth-date">생년월일</label>
+                                <input type="text" id="birth-date" placeholder="YYMMDD" maxlength="6" inputmode="numeric">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="payment-actions">
+                    <button class="btn btn-secondary" onclick="goBack()">
+                        <i class="fas fa-arrow-left"></i> 돌아가기
+                    </button>
+                    <button class="btn btn-primary btn-large" onclick="processPayment()">
+                        <i class="fas fa-credit-card"></i> ₩29,000 결제하기
+                    </button>
+                </div>
+
+                <!-- Terms -->
+                <div class="payment-terms">
+                    <p><small>
+                        결제 완료 후 즉시 서비스를 이용하실 수 있습니다.<br>
+                        환불 정책: 서비스 이용 전까지 100% 환불 가능
+                    </small></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; Better Me 개인정보는 사용 후 즉시 삭제됩니다.</p>
+    </footer>
+
+    <!-- Loading Modal -->
+    <div class="modal" id="loading-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <p id="modal-message">Processing...</p>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+
+        function processPayment() {
+            const selectedPayment = document.querySelector('input[name="payment"]:checked').value;
+            
+            if (selectedPayment === 'card') {
+                // 카드 결제 폼 유효성 검사
+                if (!validateCardForm()) {
+                    return;
+                }
+                processCardPayment();
+            } else if (selectedPayment === 'kakao') {
+                processKakaoPay();
+            } else if (selectedPayment === 'toss') {
+                processTossPay();
+            }
+        }
+
+        function validateCardForm() {
+            const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
+            const expiryDate = document.getElementById('expiry-date').value;
+            const cvv = document.getElementById('cvv').value;
+            const cardName = document.getElementById('card-name').value;
+            const cardPassword = document.getElementById('card-password').value;
+            const birthDate = document.getElementById('birth-date').value;
+
+            if (cardNumber.length !== 16) {
+                alert('카드 번호를 올바르게 입력해주세요.');
+                return false;
+            }
+            if (!/^\d{2}\/\d{2}$/.test(expiryDate)) {
+                alert('유효기간을 MM/YY 형식으로 입력해주세요.');
+                return false;
+            }
+            if (cvv.length !== 3) {
+                alert('CVV를 3자리로 입력해주세요.');
+                return false;
+            }
+            if (!cardName.trim()) {
+                alert('카드 소유자명을 입력해주세요.');
+                return false;
+            }
+            if (cardPassword.length !== 2) {
+                alert('카드 비밀번호 앞 2자리를 입력해주세요.');
+                return false;
+            }
+            if (birthDate.length !== 6) {
+                alert('생년월일을 6자리로 입력해주세요.');
+                return false;
+            }
+
+            return true;
+        }
+
+        function processCardPayment() {
+            // 카드 결제 처리 (실제 구현 시 PG사 API 연동)
+            showLoadingModal('카드 결제를 처리중입니다...');
+            
+            // 시뮬레이션을 위한 3초 대기
+            setTimeout(() => {
+                hideLoadingModal();
+                showPaymentSuccess('카드 결제가 완료되었습니다!');
+            }, 3000);
+        }
+
+        async function processKakaoPay() {
+            try {
+                showLoadingModal('카카오페이 결제를 준비합니다...');
+                
+                // 카카오페이 결제 준비 API 호출
+                const response = await fetch(`${getApiBaseUrl()}/api/payment/kakao/ready`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        amount: 29000,
+                        item_name: '헤어/메이크업 팁 패키지',
+                        user_id: 'user_' + Date.now()
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    hideLoadingModal();
+                    
+                    // 모바일 환경 확인
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    
+                    if (isMobile && data.next_redirect_mobile_url) {
+                        // 모바일에서는 모바일 URL로 리다이렉트
+                        window.location.href = data.next_redirect_mobile_url;
+                    } else if (data.next_redirect_pc_url) {
+                        // PC에서는 PC URL로 리다이렉트
+                        window.location.href = data.next_redirect_pc_url;
+                    } else {
+                        throw new Error('카카오페이 결제 URL을 받을 수 없습니다.');
+                    }
+                } else {
+                    throw new Error(data.error || '카카오페이 결제 준비에 실패했습니다.');
+                }
+            } catch (error) {
+                hideLoadingModal();
+                console.error('카카오페이 결제 오류:', error);
+                alert('카카오페이 결제 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        async function processTossPay() {
+            try {
+                showLoadingModal('토스페이먼츠 결제를 준비합니다...');
+                
+                // 토스페이먼츠 결제 준비 API 호출
+                const response = await fetch(`${getApiBaseUrl()}/api/payment/toss/ready`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        amount: 29000,
+                        orderName: '헤어/메이크업 팁 패키지',
+                        customerName: '고객'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.payment && data.payment.checkoutPage) {
+                    hideLoadingModal();
+                    
+                    // 토스페이먼츠 결제 페이지로 리다이렉트
+                    window.location.href = data.payment.checkoutPage;
+                } else {
+                    throw new Error(data.error || '토스페이먼츠 결제 준비에 실패했습니다.');
+                }
+            } catch (error) {
+                hideLoadingModal();
+                console.error('토스페이먼츠 결제 오류:', error);
+                alert('토스페이먼츠 결제 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        function showPaymentSuccess(message) {
+            alert(message + '\n\n헤어/메이크업 팁 분석을 시작합니다!');
+            // 결제 완료 후 메이크업 팁 분석 시작
+            startMakeupTipsAnalysis();
+        }
+
+        function showLoadingModal(message) {
+            // 로딩 모달 표시 (기존 모달 재사용)
+            const modal = document.getElementById('loading-modal');
+            const modalMessage = document.getElementById('modal-message');
+            
+            if (modal && modalMessage) {
+                modalMessage.textContent = message;
+                modal.style.display = 'flex';
+            } else {
+                // 모달이 없는 경우 간단한 알림
+                console.log('Loading: ' + message);
+            }
+        }
+
+        function hideLoadingModal() {
+            const modal = document.getElementById('loading-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // 메이크업 팁 분석 실행 함수
+        function startMakeupTipsAnalysis() {
+            try {
+                // 메이크업 팁 분석 페이지로 이동
+                window.location.href = 'makeup-tips-analysis.html';
+            } catch (error) {
+                console.error('메이크업 팁 분석 페이지 이동 오류:', error);
+                alert('메이크업 팁 분석 페이지로 이동 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+        
+        // DataURL을 Blob으로 변환하는 함수
+        function dataURLtoBlob(dataurl) {
+            const arr = dataurl.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while(n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new Blob([u8arr], {type:mime});
+        }
+
+        // API 서버 URL 가져오기 함수
+        function getApiBaseUrl() {
+            const hostname = window.location.hostname;
+            const apiPort = '3000'; // API 서버는 항상 3000 포트에서 실행 중
+            if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+                return `http://${hostname}:${apiPort}`;
+            }
+            return `https://${hostname}`;
+        }
+
+        // 결제 방법 선택 시 폼 표시/숨김
+        document.querySelectorAll('input[name="payment"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                // 스타일 업데이트
+                document.querySelectorAll('.payment-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                this.closest('.payment-option').classList.add('selected');
+                
+                // 카드 결제 폼 표시/숨김
+                const cardForm = document.getElementById('card-form');
+                if (this.value === 'card') {
+                    cardForm.style.display = 'block';
+                } else {
+                    cardForm.style.display = 'none';
+                }
+            });
+        });
+
+        // 카드 번호 포맷팅
+        document.getElementById('card-number').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+
+        // 유효기간 포맷팅
+        document.getElementById('expiry-date').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+
+        // 숫자만 입력 허용
+        document.getElementById('cvv').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+
+        document.getElementById('card-password').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+
+        document.getElementById('birth-date').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+
+        // 초기 설정
+        document.addEventListener('DOMContentLoaded', function() {
+            // 초기 선택된 항목 스타일 적용
+            const checkedOption = document.querySelector('input[name="payment"]:checked');
+            if (checkedOption) {
+                checkedOption.closest('.payment-option').classList.add('selected');
+            }
+        });
+    </script>
+</body>
+</html>

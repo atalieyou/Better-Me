@@ -6,9 +6,10 @@ const fs = require('fs');
 const http = require('http');
 const WebSocket = require('ws');
 const axios = require('axios');
+const crypto = require('crypto');
 require('dotenv').config();
 
-const { analyzeFaceWithChatGPT5 } = require('./services/gpt4oService');
+const { analyzeFaceWithChatGPT5, analyzeMakeupTipsWithImages } = require('./services/gpt4oService');
 
 const app = express();
 const server = http.createServer(app);
@@ -65,6 +66,7 @@ app.use(cors({
     origin: [
         'http://localhost:3000',
         'http://192.168.1.82:3000',
+        'http://192.168.1.82:8080',  // Python HTTP 서버 허용
         'https://betterme-ten.vercel.app',
         'https://better-jn20tnnp3-atalies-projects.vercel.app',
         'https://better-hejanbd08-atalies-projects.vercel.app',
@@ -106,6 +108,422 @@ app.get('/kakao-pay/cancel', (req, res) => {
 app.get('/kakao-pay/fail', (req, res) => {
     console.log('카카오페이 결제 실패 콜백:', req.query);
     res.redirect('/?payment=fail&step=2');
+});
+
+// 카카오페이 결제 준비 API
+app.post('/api/payment/kakao/ready', async (req, res) => {
+    try {
+        const { amount = 29000, item_name = '헤어/메이크업 팁 패키지', user_id = 'user' } = req.body;
+        
+        // 카카오페이 API 설정
+        const KAKAO_PAY_ADMIN_KEY = process.env.KAKAO_PAY_ADMIN_KEY;
+        if (!KAKAO_PAY_ADMIN_KEY) {
+            return res.status(500).json({ error: '카카오페이 설정이 필요합니다.' });
+        }
+
+        const partner_order_id = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const partner_user_id = user_id;
+        const quantity = 1;
+        const total_amount = amount;
+        const tax_free_amount = 0;
+        const approval_url = `${req.protocol}://${req.get('host')}/kakao-pay/success`;
+        const cancel_url = `${req.protocol}://${req.get('host')}/kakao-pay/cancel`;
+        const fail_url = `${req.protocol}://${req.get('host')}/kakao-pay/fail`;
+
+        const kakaoPayData = {
+            cid: 'TC0ONETIME', // 테스트용 CID
+            partner_order_id,
+            partner_user_id,
+            item_name,
+            quantity,
+            total_amount,
+            tax_free_amount,
+            approval_url,
+            cancel_url,
+            fail_url
+        };
+
+        const response = await axios.post('https://kapi.kakao.com/v1/payment/ready', kakaoPayData, {
+            headers: {
+                'Authorization': `KakaoAK ${KAKAO_PAY_ADMIN_KEY}`,
+                'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+            }
+        });
+
+        console.log('카카오페이 결제 준비 성공:', response.data);
+        
+        res.json({
+            success: true,
+            tid: response.data.tid,
+            next_redirect_pc_url: response.data.next_redirect_pc_url,
+            next_redirect_mobile_url: response.data.next_redirect_mobile_url,
+            next_redirect_app_url: response.data.next_redirect_app_url,
+            android_app_scheme: response.data.android_app_scheme,
+            ios_app_scheme: response.data.ios_app_scheme,
+            created_at: response.data.created_at
+        });
+
+    } catch (error) {
+        console.error('카카오페이 결제 준비 오류:', error.response?.data || error.message);
+        res.status(500).json({
+            error: '카카오페이 결제 준비 중 오류가 발생했습니다.',
+            details: error.response?.data?.message || error.message
+        });
+    }
+});
+
+// 카카오페이 결제 승인 API
+app.post('/api/payment/kakao/approve', async (req, res) => {
+    try {
+        const { tid, pg_token, partner_order_id, partner_user_id } = req.body;
+        
+        if (!tid || !pg_token) {
+            return res.status(400).json({ error: '필수 파라미터가 누락되었습니다.' });
+        }
+
+        const KAKAO_PAY_ADMIN_KEY = process.env.KAKAO_PAY_ADMIN_KEY;
+        if (!KAKAO_PAY_ADMIN_KEY) {
+            return res.status(500).json({ error: '카카오페이 설정이 필요합니다.' });
+        }
+
+        const approveData = {
+            cid: 'TC0ONETIME',
+            tid,
+            partner_order_id,
+            partner_user_id,
+            pg_token
+        };
+
+        const response = await axios.post('https://kapi.kakao.com/v1/payment/approve', approveData, {
+            headers: {
+                'Authorization': `KakaoAK ${KAKAO_PAY_ADMIN_KEY}`,
+                'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+            }
+        });
+
+        console.log('카카오페이 결제 승인 성공:', response.data);
+        
+        res.json({
+            success: true,
+            payment: response.data
+        });
+
+    } catch (error) {
+        console.error('카카오페이 결제 승인 오류:', error.response?.data || error.message);
+        res.status(500).json({
+            error: '카카오페이 결제 승인 중 오류가 발생했습니다.',
+            details: error.response?.data?.message || error.message
+        });
+    }
+});
+
+// 토스페이먼츠 결제 API
+app.post('/api/payment/toss/ready', async (req, res) => {
+    try {
+        const { amount = 29000, orderName = '헤어/메이크업 팁 패키지', customerName = '고객' } = req.body;
+        
+        const TOSS_SECRET_KEY = process.env.TOSS_SECRET_KEY;
+        if (!TOSS_SECRET_KEY) {
+            return res.status(500).json({ error: '토스페이먼츠 설정이 필요합니다.' });
+        }
+
+        const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const successUrl = `${req.protocol}://${req.get('host')}/toss-pay/success`;
+        const failUrl = `${req.protocol}://${req.get('host')}/toss-pay/fail`;
+
+        const tossData = {
+            orderId,
+            amount,
+            orderName,
+            customerName,
+            successUrl,
+            failUrl
+        };
+
+        const response = await axios.post('https://api.tosspayments.com/v1/payments', tossData, {
+            headers: {
+                'Authorization': `Basic ${Buffer.from(TOSS_SECRET_KEY + ':').toString('base64')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('토스페이먼츠 결제 준비 성공:', response.data);
+        
+        res.json({
+            success: true,
+            payment: response.data
+        });
+
+    } catch (error) {
+        console.error('토스페이먼츠 결제 준비 오류:', error.response?.data || error.message);
+        res.status(500).json({
+            error: '토스페이먼츠 결제 준비 중 오류가 발생했습니다.',
+            details: error.response?.data?.message || error.message
+        });
+    }
+});
+
+// 토스페이먼츠 결제 승인 API
+app.post('/api/payment/toss/confirm', async (req, res) => {
+    try {
+        const { paymentKey, orderId, amount } = req.body;
+        
+        if (!paymentKey || !orderId || !amount) {
+            return res.status(400).json({ error: '필수 파라미터가 누락되었습니다.' });
+        }
+
+        const TOSS_SECRET_KEY = process.env.TOSS_SECRET_KEY;
+        if (!TOSS_SECRET_KEY) {
+            return res.status(500).json({ error: '토스페이먼츠 설정이 필요합니다.' });
+        }
+
+        const confirmData = {
+            paymentKey,
+            orderId,
+            amount
+        };
+
+        const response = await axios.post('https://api.tosspayments.com/v1/payments/confirm', confirmData, {
+            headers: {
+                'Authorization': `Basic ${Buffer.from(TOSS_SECRET_KEY + ':').toString('base64')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('토스페이먼츠 결제 승인 성공:', response.data);
+        
+        res.json({
+            success: true,
+            payment: response.data
+        });
+
+    } catch (error) {
+        console.error('토스페이먼츠 결제 승인 오류:', error.response?.data || error.message);
+        res.status(500).json({
+            error: '토스페이먼츠 결제 승인 중 오류가 발생했습니다.',
+            details: error.response?.data?.message || error.message
+        });
+    }
+});
+
+// 토스페이먼츠 콜백 라우트
+app.get('/toss-pay/success', (req, res) => {
+    console.log('토스페이먼츠 결제 성공 콜백:', req.query);
+    const { paymentKey, orderId, amount } = req.query;
+    
+    if (paymentKey && orderId && amount) {
+        res.redirect(`/?payment=success&step=3&paymentKey=${paymentKey}&orderId=${orderId}&amount=${amount}`);
+    } else {
+        res.redirect('/?payment=error');
+    }
+});
+
+app.get('/toss-pay/fail', (req, res) => {
+    console.log('토스페이먼츠 결제 실패 콜백:', req.query);
+    res.redirect('/?payment=fail&step=2');
+});
+
+// PayPal 결제 API
+app.post('/api/payment/paypal/create-order', async (req, res) => {
+    try {
+        const { amount = 29000, currency = 'USD' } = req.body;
+        
+        const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
+        const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
+        
+        // 테스트 모드: API 키가 없으면 시뮬레이션으로 처리
+        if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
+            console.log('PayPal API 키가 설정되지 않음 - 테스트 모드로 시뮬레이션 처리');
+            
+            // 시뮬레이션 응답
+            const mockOrderId = `test_order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            const mockApprovalUrl = `${req.protocol}://${req.get('host')}/paypal/success?token=${mockOrderId}&PayerID=test_payer`;
+            
+            return res.json({
+                success: true,
+                orderId: mockOrderId,
+                approvalUrl: mockApprovalUrl
+            });
+        }
+
+        // PayPal 액세스 토큰 가져오기
+        const authResponse = await axios.post('https://api-m.sandbox.paypal.com/v1/oauth2/token', 
+            'grant_type=client_credentials', {
+            headers: {
+                'Authorization': `Basic ${Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64')}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+
+        const accessToken = authResponse.data.access_token;
+
+        // PayPal 주문 생성
+        const orderData = {
+            intent: 'CAPTURE',
+            purchase_units: [{
+                amount: {
+                    currency_code: currency,
+                    value: (amount / 1000).toFixed(2) // 29000원을 29.00 USD로 변환
+                },
+                description: 'Hair/Makeup Tips Package'
+            }],
+            application_context: {
+                return_url: `${req.protocol}://${req.get('host')}/paypal/success`,
+                cancel_url: `${req.protocol}://${req.get('host')}/paypal/cancel`
+            }
+        };
+
+        const orderResponse = await axios.post('https://api-m.sandbox.paypal.com/v2/checkout/orders', orderData, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('PayPal 주문 생성 성공:', orderResponse.data);
+        
+        res.json({
+            success: true,
+            orderId: orderResponse.data.id,
+            approvalUrl: orderResponse.data.links.find(link => link.rel === 'approve').href
+        });
+
+    } catch (error) {
+        console.error('PayPal 주문 생성 오류:', error.response?.data || error.message);
+        res.status(500).json({
+            error: 'PayPal 주문 생성 중 오류가 발생했습니다.',
+            details: error.response?.data?.message || error.message
+        });
+    }
+});
+
+// PayPal 결제 승인 API
+app.post('/api/payment/paypal/capture-order', async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        
+        if (!orderId) {
+            return res.status(400).json({ error: '주문 ID가 필요합니다.' });
+        }
+
+        const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
+        const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
+        
+        // 테스트 모드: API 키가 없으면 시뮬레이션으로 처리
+        if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
+            console.log('PayPal API 키가 설정되지 않음 - 테스트 모드로 시뮬레이션 처리');
+            
+            // 시뮬레이션 응답
+            return res.json({
+                success: true,
+                payment: {
+                    id: orderId,
+                    status: 'COMPLETED',
+                    amount: {
+                        currency_code: 'USD',
+                        value: '29.00'
+                    }
+                }
+            });
+        }
+
+        // PayPal 액세스 토큰 가져오기
+        const authResponse = await axios.post('https://api-m.sandbox.paypal.com/v1/oauth2/token', 
+            'grant_type=client_credentials', {
+            headers: {
+                'Authorization': `Basic ${Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64')}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+
+        const accessToken = authResponse.data.access_token;
+
+        // PayPal 주문 승인
+        const captureResponse = await axios.post(`https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`, {}, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('PayPal 결제 승인 성공:', captureResponse.data);
+        
+        res.json({
+            success: true,
+            payment: captureResponse.data
+        });
+
+    } catch (error) {
+        console.error('PayPal 결제 승인 오류:', error.response?.data || error.message);
+        res.status(500).json({
+            error: 'PayPal 결제 승인 중 오류가 발생했습니다.',
+            details: error.response?.data?.message || error.message
+        });
+    }
+});
+
+// Stripe 결제 API (카드결제용)
+app.post('/api/payment/stripe/create-payment-intent', async (req, res) => {
+    try {
+        const { amount = 29000, currency = 'usd' } = req.body;
+        
+        const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+        
+        // 테스트 모드: API 키가 없으면 시뮬레이션으로 처리
+        if (!STRIPE_SECRET_KEY) {
+            console.log('Stripe API 키가 설정되지 않음 - 테스트 모드로 시뮬레이션 처리');
+            
+            // 시뮬레이션 응답
+            const mockPaymentIntentId = `pi_test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            const mockClientSecret = `${mockPaymentIntentId}_secret_test_${Math.random().toString(36).substr(2, 9)}`;
+            
+            return res.json({
+                success: true,
+                clientSecret: mockClientSecret,
+                paymentIntentId: mockPaymentIntentId
+            });
+        }
+
+        const paymentIntent = await axios.post('https://api.stripe.com/v1/payment_intents', 
+            `amount=${amount}&currency=${currency}&automatic_payment_methods[enabled]=true`, {
+            headers: {
+                'Authorization': `Bearer ${STRIPE_SECRET_KEY}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+
+        console.log('Stripe 결제 의도 생성 성공:', paymentIntent.data);
+        
+        res.json({
+            success: true,
+            clientSecret: paymentIntent.data.client_secret,
+            paymentIntentId: paymentIntent.data.id
+        });
+
+    } catch (error) {
+        console.error('Stripe 결제 의도 생성 오류:', error.response?.data || error.message);
+        res.status(500).json({
+            error: 'Stripe 결제 의도 생성 중 오류가 발생했습니다.',
+            details: error.response?.data?.error?.message || error.message
+        });
+    }
+});
+
+// PayPal 콜백 라우트
+app.get('/paypal/success', (req, res) => {
+    console.log('PayPal 결제 성공 콜백:', req.query);
+    const { token, PayerID } = req.query;
+    
+    if (token && PayerID) {
+        res.redirect(`/?payment=success&step=3&paypal_token=${token}&payer_id=${PayerID}`);
+    } else {
+        res.redirect('/?payment=error');
+    }
+});
+
+app.get('/paypal/cancel', (req, res) => {
+    console.log('PayPal 결제 취소 콜백:', req.query);
+    res.redirect('/?payment=cancel&step=2');
 });
 
 // 업로드 디렉토리 생성
@@ -261,8 +679,18 @@ app.post('/api/analyze-face', upload.fields([
             side90: req.files.side90[0].filename
         });
 
-        // 세션 ID 생성
-        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        // 언어 정보 추출 (기본값: 'ko')
+        const language = req.body.language || 'ko';
+        console.log(`🌍 클라이언트에서 전달받은 언어: ${language}`);
+        
+        // 세션 ID 처리 (클라이언트에서 전송한 세션 ID 사용, 없으면 새로 생성)
+        let sessionId = req.body.sessionId;
+        if (!sessionId) {
+            sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            console.log('클라이언트 세션 ID가 없어서 새로 생성:', sessionId);
+        } else {
+            console.log('클라이언트에서 전달받은 세션 ID 사용:', sessionId);
+        }
         
         // 분석 시작 상태 등록
         analysisProgress.set(sessionId, {
@@ -281,7 +709,7 @@ app.post('/api/analyze-face', upload.fields([
             req.files.front[0].path,
             req.files.side45[0].path,
             req.files.side90[0].path
-        ], sessionId); // 세션 ID 전달
+        ], sessionId, language); // 세션 ID와 언어 정보 전달
 
         // 분석 완료 후 모든 업로드된 파일 삭제
         Object.values(req.files).forEach(files => {
@@ -299,6 +727,19 @@ app.post('/api/analyze-face', upload.fields([
             updatedAt: new Date().toISOString(),
             expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString()
         });
+        
+        // WebSocket으로 분석 완료 알림 전송
+        const client = clients.get(sessionId);
+        if (client && client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+                type: 'analysis_complete',
+                result: analysisResult,
+                sessionId: sessionId
+            }));
+            console.log('WebSocket으로 분석 완료 알림 전송:', sessionId);
+        } else {
+            console.log('WebSocket 클라이언트를 찾을 수 없음:', sessionId);
+        }
         
         // AI 거부 응답인지 확인
         if (analysisResult.error === 'ai_refusal') {
@@ -348,46 +789,7 @@ app.post('/api/analyze-face', upload.fields([
 });
 
 
-// 분석 결과 저장 API
-app.post('/api/save-analysis-result', async (req, res) => {
-    try {
-        const { analysisResult, uploadedImages } = req.body;
-        
-        if (!analysisResult) {
-            return res.status(400).json({ 
-                error: '분석 결과가 필요합니다.' 
-            });
-        }
-
-        // 고유 ID 생성 (타임스탬프 + 랜덤 문자열)
-        const resultId = `result_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
-        // 결과 저장
-        analysisResults.set(resultId, {
-            id: resultId,
-            analysisResult,
-            uploadedImages,
-            createdAt: new Date().toISOString(),
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7일 후 만료
-        });
-
-        console.log('분석 결과 저장 완료:', resultId);
-        
-        res.json({
-            success: true,
-            resultId: resultId,
-            shareUrl: `http://localhost:3000/share/${resultId}`
-        });
-
-    } catch (error) {
-        console.error('분석 결과 저장 오류:', error);
-        
-        res.status(500).json({
-            error: '분석 결과 저장 중 오류가 발생했습니다.',
-            details: error.message
-        });
-    }
-});
+// 분석 결과 저장 API (중복 제거됨 - 아래 모바일 최적화 버전 사용)
 
 // 분석 진행 상태 조회 API
 app.get('/api/analysis-progress/:sessionId', async (req, res) => {
@@ -631,6 +1033,172 @@ app.use((error, req, res, next) => {
 // 공유 링크 페이지 (404 처리 전에 추가)
 app.get('/share/:resultId', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// 메이크업 팁 분석 API
+app.post('/api/analyze-makeup-tips', upload.fields([
+    { name: 'front', maxCount: 1 },
+    { name: 'side45', maxCount: 1 },
+    { name: 'side90', maxCount: 1 }
+]), async (req, res) => {
+    try {
+        if (!req.files || !req.files.front || !req.files.side45 || !req.files.side90) {
+            return res.status(400).json({ 
+                error: '정면, 45도 측면, 90도 측면 사진이 모두 필요합니다.' 
+            });
+        }
+
+        console.log('메이크업 팁 분석 - 3장 이미지 업로드 완료:', {
+            front: req.files.front[0].filename,
+            side45: req.files.side45[0].filename,
+            side90: req.files.side90[0].filename
+        });
+
+        // 언어 정보 추출 (기본값: 'ko')
+        const language = req.body.language || 'ko';
+        console.log(`🌍 메이크업 팁 분석 - 클라이언트에서 전달받은 언어: ${language}`);
+        
+        // 세션 ID 처리
+        let sessionId = req.body.sessionId;
+        if (!sessionId) {
+            sessionId = `makeup_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            console.log('메이크업 팁 분석 - 새 세션 ID 생성:', sessionId);
+        } else {
+            console.log('메이크업 팁 분석 - 클라이언트 세션 ID 사용:', sessionId);
+        }
+        
+        // 분석 시작 상태 등록
+        analysisProgress.set(sessionId, {
+            sessionId,
+            status: 'analyzing',
+            progress: 0,
+            message: '메이크업 팁 분석 시작...',
+            updatedAt: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString()
+        });
+        
+        console.log('메이크업 팁 분석 세션 시작:', sessionId);
+        
+        // 얼굴분석 결과 가져오기
+        let faceAnalysisResult = null;
+        const faceAnalysisResultId = req.body.faceAnalysisResultId;
+        
+        // 1. faceAnalysisResultId로 서버에서 가져오기 시도
+        if (faceAnalysisResultId) {
+            const storedResult = serverAnalysisResults.get(faceAnalysisResultId);
+            if (storedResult && storedResult.analysisResult) {
+                faceAnalysisResult = storedResult.analysisResult;
+                console.log('얼굴분석 결과를 서버에서 가져왔습니다:', faceAnalysisResultId);
+            } else {
+                console.log('얼굴분석 결과를 찾을 수 없습니다:', faceAnalysisResultId);
+            }
+        }
+        
+        // 2. faceAnalysisResultId가 없거나 결과를 찾지 못한 경우 직접 전달된 결과 사용
+        if (!faceAnalysisResult && req.body.faceAnalysisResult) {
+            try {
+                faceAnalysisResult = typeof req.body.faceAnalysisResult === 'string' 
+                    ? JSON.parse(req.body.faceAnalysisResult) 
+                    : req.body.faceAnalysisResult;
+                console.log('직접 전달된 얼굴분석 결과를 사용합니다.');
+            } catch (error) {
+                console.error('직접 전달된 얼굴분석 결과 파싱 오류:', error);
+            }
+        }
+        
+        if (!faceAnalysisResult) {
+            console.log('얼굴분석 결과를 찾을 수 없습니다. ID:', faceAnalysisResultId);
+        }
+        
+        // 3장 사진 모두 ChatGPT에 전송하여 메이크업 팁 분석 요청
+        const analysisResult = await analyzeMakeupTipsWithImages([
+            req.files.front[0].path,
+            req.files.side45[0].path,
+            req.files.side90[0].path
+        ], sessionId, language, faceAnalysisResult);
+
+        // 분석 완료 후 모든 업로드된 파일 삭제
+        req.files.front.forEach(file => {
+            if (fs.existsSync(file.path)) {
+                fs.unlinkSync(file.path);
+            }
+        });
+        req.files.side45.forEach(file => {
+            if (fs.existsSync(file.path)) {
+                fs.unlinkSync(file.path);
+            }
+        });
+        req.files.side90.forEach(file => {
+            if (fs.existsSync(file.path)) {
+                fs.unlinkSync(file.path);
+            }
+        });
+
+        // 분석 완료 상태 업데이트
+        analysisProgress.set(sessionId, {
+            sessionId,
+            status: 'completed',
+            progress: 100,
+            message: '메이크업 팁 분석 완료!',
+            updatedAt: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString()
+        });
+        
+        // WebSocket으로 분석 완료 알림 전송 (선택적)
+        const client = clients.get(sessionId);
+        if (client && client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+                type: 'makeup_analysis_complete',
+                result: analysisResult,
+                sessionId: sessionId
+            }));
+            console.log('WebSocket으로 메이크업 팁 분석 완료 알림 전송:', sessionId);
+        } else {
+            console.log('WebSocket 클라이언트를 찾을 수 없음, HTTP 응답으로 결과 전송:', sessionId);
+        }
+        
+        // AI 거부 응답인지 확인
+        if (analysisResult && analysisResult.error === 'ai_refusal') {
+            console.log('AI 거부 응답 처리');
+            res.json({
+                success: false,
+                error: 'ai_refusal',
+                reason: analysisResult.reason,
+                details: analysisResult.details,
+                sessionId: sessionId
+            });
+        } else {
+            // AI 응답만 깔끔하게 추출해서 전송
+            const cleanAnalysis = {
+                analysis: analysisResult.analysis || '메이크업 팁 분석 결과를 가져올 수 없습니다.'
+            };
+            
+            console.log('HTTP 응답으로 메이크업 팁 분석 결과 전송:', {
+                success: true,
+                analysisLength: cleanAnalysis.analysis.length,
+                sessionId: sessionId
+            });
+            
+            res.json({
+                success: true,
+                analysis: cleanAnalysis,
+                sessionId: sessionId
+            });
+        }
+
+    } catch (error) {
+        console.error('메이크업 팁 분석 오류:', error);
+        
+        // 오류 발생 시 업로드된 파일 삭제
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+
+        res.status(500).json({
+            error: '메이크업 팁 분석 중 오류가 발생했습니다.',
+            details: error.message
+        });
+    }
 });
 
 // 404 처리

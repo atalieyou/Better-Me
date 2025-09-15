@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Better Me - Makeup Tips Analysis</title>
+    <link rel="stylesheet" href="styles.css?v=18">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-BVF6W1YC2F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);} 
+      gtag('js', new Date());
+      gtag('config', 'G-BVF6W1YC2F');
+    </script>
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="logo-container">
+            <img src="better-me-logo.png" alt="Better Me" class="main-logo">
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <!-- 단계별 진행 표시 -->
+        <div class="progress-steps">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Photo Usage Agreement</div>
+            </div>
+            <div class="step active" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Photo Upload</div>
+            </div>
+            <div class="step active" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">Tip Creation</div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-label">View Results</div>
+            </div>
+        </div>
+
+        <!-- 3단계: 메이크업 팁 분석 -->
+        <div class="step-panel active" id="step-3">
+            <h2>AI is analyzing makeup and hair tips...</h2>
+            <div class="loading-page">
+                <div class="loading-content">
+                    <div class="loading-spinner"></div>
+                    <h3>Precise makeup/hair tips creation is in progress for 1-2 minutes</h3>
+                    
+                    <!-- 진행률 바 추가 -->
+                    <div class="progress-container">
+                        <!-- 진행률 바 -->
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="analysis-progress-fill"></div>
+                        </div>
+                        
+                        <!-- 간단한 진행 텍스트 -->
+                            <div class="progress-text" id="analysis-progress-text">AI is creating makeup/hair tips...<span class="loading-dots" id="loading-dots"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <p>&copy; 2024 Better Me. All rights reserved.</p>
+                <p>Incheon Metropolitan City, Gyeyang-gu, Seoun Industrial Complex-ro 1-gil 19 (Seoun-dong) DSE 320</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 전역 변수
+        let analysisResults = null;
+        let uploadedImages = null;
+        let currentStep = 3;
+
+        // 페이지 로드 시 실행
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Makeup tips analysis page loaded');
+            
+            // 타이핑 효과 시작
+            startTypingEffect();
+            
+            initializeMakeupTipsAnalysis();
+        });
+
+        // 타이핑 효과 함수 (프로그레스 텍스트용, 반복)
+        function startTypingEffect() {
+            const progressTextElement = document.getElementById('analysis-progress-text');
+            if (!progressTextElement) return;
+
+            const fullText = 'AI is creating makeup/hair tips...';
+            let currentIndex = 0;
+            let isTyping = true;
+
+            function typeChar() {
+                if (!isTyping) return;
+                
+                if (currentIndex < fullText.length) {
+                    // 로딩 점 제거하고 타이핑
+                    const loadingDots = progressTextElement.querySelector('.loading-dots');
+                    progressTextElement.innerHTML = fullText.substring(0, currentIndex + 1);
+                    if (loadingDots) {
+                        progressTextElement.appendChild(loadingDots);
+                    }
+                    currentIndex++;
+                    setTimeout(typeChar, 100); // 100ms마다 한 글자씩
+                } else {
+                    // 타이핑 완료 후 잠시 대기 후 다시 시작
+                    setTimeout(() => {
+                        currentIndex = 0;
+                        setTimeout(typeChar, 1000); // 1초 후 다시 시작
+                    }, 2000); // 2초 대기
+                }
+            }
+
+            // 타이핑 효과 시작
+            setTimeout(typeChar, 500); // 0.5초 후 시작
+
+            // 분석 완료 시 타이핑 중단
+            window.stopTypingEffect = function() {
+                isTyping = false;
+            };
+        }
+
+        // 메이크업 팁 분석 초기화
+        function initializeMakeupTipsAnalysis() {
+            try {
+                // 업로드된 이미지 로드
+                loadUploadedImages();
+                
+                // 분석 시작
+                startMakeupTipsAnalysis();
+                
+                console.log('Makeup tips analysis initialization completed');
+            } catch (error) {
+                console.error('Makeup tips analysis initialization error:', error);
+                showError('Unable to start makeup tips analysis.');
+            }
+        }
+
+        // 업로드된 이미지 로드
+        function loadUploadedImages() {
+            try {
+                const savedImages = sessionStorage.getItem('beautyAI_uploadedImages');
+                if (savedImages) {
+                    uploadedImages = JSON.parse(savedImages);
+                    console.log('Uploaded images loaded');
+                } else {
+                    console.error('No uploaded images found');
+                    showError('No uploaded images found.');
+                }
+            } catch (error) {
+                console.error('Image loading error:', error);
+                showError('Error occurred while loading images.');
+            }
+        }
+
+        // 메이크업 팁 분석 시작
+        async function startMakeupTipsAnalysis() {
+            try {
+                console.log('🔍 Starting makeup tips analysis');
+                
+                // 진행률 초기화
+                updateProgress(0, 'Starting makeup tips analysis...');
+                
+                // 1단계: 클라이언트 세션 스토리지에서 얼굴분석 결과 확인
+                console.log('1단계: 클라이언트 세션 스토리지에서 얼굴분석 결과 확인...');
+                const clientFaceAnalysis = sessionStorage.getItem('beautyAI_analysisResults');
+                
+                if (clientFaceAnalysis) {
+                    console.log('✅ 클라이언트에서 얼굴분석 결과 발견');
+                    // 클라이언트에 얼굴분석 결과가 있으면 바로 메이크업 팁 분석 진행
+                    await proceedWithMakeupAnalysis(clientFaceAnalysis);
+                    return;
+                } else {
+                    console.log('❌ 클라이언트에 얼굴분석 결과 없음, 서버에서 확인 시도');
+                }
+                
+                // 이미지 데이터 검증
+                if (!uploadedImages || (!uploadedImages.front && !uploadedImages['45'] && !uploadedImages['90'])) {
+                    throw new Error('No uploaded images found.');
+                }
+                
+                // FormData 생성
+                const formData = new FormData();
+                
+                // 이미지 데이터를 Blob으로 변환하여 추가
+                if (uploadedImages.front && uploadedImages.front.dataUrl) {
+                    const frontBlob = dataURLtoBlob(uploadedImages.front.dataUrl);
+                    formData.append('front', frontBlob, 'front.jpg');
+                    updateProgress(20, 'Processing front photo...');
+                }
+                if (uploadedImages['45'] && uploadedImages['45'].dataUrl) {
+                    const side45Blob = dataURLtoBlob(uploadedImages['45'].dataUrl);
+                    formData.append('side45', side45Blob, 'side45.jpg');
+                    updateProgress(40, 'Processing 45° side photo...');
+                }
+                if (uploadedImages['90'] && uploadedImages['90'].dataUrl) {
+                    const side90Blob = dataURLtoBlob(uploadedImages['90'].dataUrl);
+                    formData.append('side90', side90Blob, 'side90.jpg');
+                    updateProgress(60, 'Processing 90° side photo...');
+                }
+                
+                // 언어 정보 추가
+                formData.append('language', 'en');
+                
+                // 세션 ID 추가
+                const sessionId = `makeup_tips_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                formData.append('sessionId', sessionId);
+                
+                updateProgress(80, 'AI is analyzing makeup tips...');
+                
+                // API 호출
+                const apiBaseUrl = getApiBaseUrl();
+                const response = await fetch(`${apiBaseUrl}/api/analyze-makeup-tips`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API call failed: ${response.status} - ${errorText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateProgress(100, 'Makeup tips analysis completed!');
+                    
+                    // 분석 결과를 세션 스토리지에 저장
+                    const makeupTipsResult = {
+                        raw_analysis: result.analysis.analysis || result.analysis
+                    };
+                    console.log('Makeup tips analysis result saved:', makeupTipsResult);
+                    sessionStorage.setItem('beautyAI_makeupTipsResults', JSON.stringify(makeupTipsResult));
+                    
+                    // 결과 페이지로 이동
+                    setTimeout(() => {
+                        window.location.href = 'makeup-tips-result-en.html';
+                    }, 2000);
+                } else {
+                    throw new Error(result.error || 'Makeup tips analysis failed.');
+                }
+                
+            } catch (error) {
+                console.error('Makeup tips analysis error:', error);
+                showError('An error occurred during makeup tips analysis: ' + error.message);
+            }
+        }
+
+        // 클라이언트 얼굴분석 결과로 메이크업 팁 분석 진행
+        async function proceedWithMakeupAnalysis(faceAnalysisResult) {
+            try {
+                updateProgress(20, 'Face analysis results confirmed...');
+                
+                // FormData 생성
+                const formData = new FormData();
+                
+                // 이미지 데이터를 Blob으로 변환하여 추가
+                if (uploadedImages.front && uploadedImages.front.dataUrl) {
+                    const frontBlob = dataURLtoBlob(uploadedImages.front.dataUrl);
+                    formData.append('front', frontBlob, 'front.jpg');
+                    updateProgress(40, 'Processing front photo...');
+                }
+                if (uploadedImages['45'] && uploadedImages['45'].dataUrl) {
+                    const side45Blob = dataURLtoBlob(uploadedImages['45'].dataUrl);
+                    formData.append('side45', side45Blob, 'side45.jpg');
+                    updateProgress(60, 'Processing 45-degree side photo...');
+                }
+                if (uploadedImages['90'] && uploadedImages['90'].dataUrl) {
+                    const side90Blob = dataURLtoBlob(uploadedImages['90'].dataUrl);
+                    formData.append('side90', side90Blob, 'side90.jpg');
+                    updateProgress(80, 'Processing 90-degree side photo...');
+                }
+                
+                // 언어 설정 추가
+                formData.append('language', 'en');
+                
+                // 세션 ID 추가
+                const sessionId = `makeup_tips_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                formData.append('sessionId', sessionId);
+                
+                // 얼굴분석 결과 ID 추가 (서버에서 저장된 결과 ID)
+                let faceAnalysisResultId = sessionStorage.getItem('beautyAI_resultId');
+                
+                // beautyAI_resultId가 없으면 대체 방법 시도
+                if (!faceAnalysisResultId) {
+                    console.log('beautyAI_resultId not found, trying alternative methods...');
+                    
+                    // 1. analysisResults가 sessionStorage에 있는지 확인
+                    const storedAnalysisResults = sessionStorage.getItem('beautyAI_analysisResults');
+                    if (storedAnalysisResults) {
+                        try {
+                            const analysisData = JSON.parse(storedAnalysisResults);
+                            if (analysisData && analysisData.raw_analysis) {
+                                console.log('Found analysis results in sessionStorage, using directly');
+                                formData.append('faceAnalysisResult', JSON.stringify(analysisData.raw_analysis));
+                            }
+                        } catch (e) {
+                            console.error('Failed to parse stored analysis results:', e);
+                        }
+                    }
+                    
+                    // 2. 여전히 없으면 서버에서 최근 결과 가져오기 시도
+                    if (!storedAnalysisResults) {
+                        console.log('No analysis results found, redirecting to face analysis...');
+                        alert('Face analysis results are required. Redirecting to face analysis page.');
+                        window.location.href = 'face-analysis-en.html';
+                        return;
+                    }
+                } else {
+                    formData.append('faceAnalysisResultId', faceAnalysisResultId);
+                    console.log('Face analysis result ID passed:', faceAnalysisResultId);
+                }
+                
+                    updateProgress(90, 'AI is creating makeup/hair tips...');
+                
+                // API 호출
+                const apiBaseUrl = getApiBaseUrl();
+                const response = await fetch(`${apiBaseUrl}/api/analyze-makeup-tips`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API call failed: ${response.status} - ${errorText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateProgress(100, 'Makeup tips analysis completed!');
+                    
+                    // 분석 결과를 세션 스토리지에 저장
+                    const makeupTipsResult = {
+                        raw_analysis: result.analysis.analysis || result.analysis
+                    };
+                    console.log('Makeup tips analysis result saved:', makeupTipsResult);
+                    sessionStorage.setItem('beautyAI_makeupTipsResults', JSON.stringify(makeupTipsResult));
+                    
+                    // 결과 페이지로 이동
+                    setTimeout(() => {
+                        window.location.href = 'makeup-tips-result-en.html';
+                    }, 2000);
+                } else {
+                    throw new Error(result.error || 'Makeup tips analysis failed.');
+                }
+                
+            } catch (error) {
+                console.error('Makeup tips analysis error:', error);
+                showError('An error occurred during makeup tips analysis: ' + error.message);
+            }
+        }
+
+        // 진행률 업데이트
+        function updateProgress(percentage, message) {
+            const progressFill = document.getElementById('analysis-progress-fill');
+            const progressText = document.getElementById('analysis-progress-text');
+            
+            if (progressFill) {
+                progressFill.style.width = percentage + '%';
+            }
+            
+            // 프로그레스 텍스트는 타이핑 효과로만 업데이트하므로 여기서는 건드리지 않음
+            console.log(`Progress: ${percentage}% - ${message}`);
+        }
+
+        // DataURL을 Blob으로 변환하는 함수
+        function dataURLtoBlob(dataurl) {
+            const arr = dataurl.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while(n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new Blob([u8arr], {type:mime});
+        }
+
+        // API 서버 URL 가져오기 함수
+        function getApiBaseUrl() {
+            const hostname = window.location.hostname;
+            const apiPort = '3000'; // API 서버는 항상 3000 포트에서 실행 중
+            if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+                return `http://${hostname}:${apiPort}`;
+            }
+            return `https://${hostname}`;
+        }
+
+        // 에러 표시
+        function showError(message) {
+            updateProgress(0, 'An error occurred.');
+            const statusText = document.getElementById('status-text');
+            if (statusText) {
+                statusText.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            }
+            alert(message);
+        }
+    </script>
+</body>
+</html>

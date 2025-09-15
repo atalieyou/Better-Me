@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Better Me - Personalized Face Analysis</title>
+    <link rel="stylesheet" href="styles.css?v=18">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Image capture library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-BVF6W1YC2F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);} 
+      gtag('js', new Date());
+      gtag('config', 'G-BVF6W1YC2F');
+    </script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <img src="better-me-logo.png" alt="Better Me" class="main-logo">
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+            <!-- Progress Steps -->
+            <div class="progress-steps">
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Photo Usage Consent</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Photo Upload</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">AI Analysis</div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Feedback</div>
+                </div>
+            </div>
+
+            <!-- Step Content -->
+            <div class="step-content">
+                <!-- Step 1: Better Me Service Terms -->
+                <div class="step-panel active" id="step-1">
+                    <h2>Service Terms</h2>
+                    <p class="terms-subtitle">*Important content only!</p>
+                    
+                    <!-- Terms Agreement Checkbox -->
+                    <div class="terms-consent-section">
+                        
+                        <div class="terms-content">
+                            <div class="terms-item">
+                                <h4><input type="checkbox" id="service-terms" required> Service Terms Agreement <a href="#" class="terms-link">(View)</a></h4>
+                                <ul>
+                                    <li>AI-based appearance analysis and evaluation</li>
+                                    <li>Personalized feedback provision</li>
+                                    <li>Enhanced image generation</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="terms-item">
+                                <h4><input type="checkbox" id="privacy-consent" required> Personal Information Collection & Usage Agreement <a href="#" class="terms-link">(View)</a></h4>
+                                <ul>
+                                    <li>Uploaded photos are used for analysis purposes only</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="terms-item">
+                                <h4><input type="checkbox" id="privacy-transfer" required> Personal Information External Transfer & Provision Agreement <a href="privacy-transfer.html" target="_blank" class="terms-link">(View)</a></h4>
+                                <ul>
+                                    <li>Photos transferred to server are completely deleted after 30 days</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    
+                    <div class="step-buttons-center">
+                        <button class="btn btn-primary" id="next-step-2" onclick="nextStep()" disabled>Next Step</button>
+                    </div>
+                </div>
+
+
+                <!-- Step 2: Photo Upload -->
+                <div class="step-panel" id="step-2">
+                    <h2>Photo Upload</h2>
+                    
+                    <div class="upload-requirements">
+                        <ul>
+                            <li>Face analysis is conducted with a makeup-free, bare face</li>
+                            <li>Please tie your hair so it doesn't cover your facial features</li>
+                            <li>Since analysis is done through photo capture, please ensure the camera lens is clean</li>
+                            <li>Analysis takes 1-3 minutes in total</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="upload-grid">
+                        <!-- Front Photo -->
+                        <div class="upload-item">
+                            <h4><i class="fas fa-user"></i> Front Photo</h4>
+                            <div class="upload-zone" id="upload-zone-front" data-type="front" onclick="document.getElementById('photo-input-front').click()" ondrop="handleDrop(event, 'front')" ondragover="handleDragOver(event)">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Front-facing photo</p>
+                                <p class="upload-hint">Your face should be facing forward</p>
+                            </div>
+                            <input type="file" id="photo-input-front" accept="image/*" capture="user" style="display: none;" onchange="handleFileUpload(event, 'front')">
+                            <div class="uploaded-image" id="uploaded-image-front" style="display: none;">
+                                <img id="preview-image-front" src="" alt="Front Photo">
+                                <button class="btn btn-secondary btn-sm" onclick="removeImage('front')">Remove</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 45-degree Side Photo -->
+                        <div class="upload-item">
+                            <h4><i class="fas fa-user-friends"></i> 45-degree Side Photo</h4>
+                            <div class="upload-zone" id="upload-zone-45" data-type="45" onclick="document.getElementById('photo-input-45').click()" ondrop="handleDrop(event, '45')" ondragover="handleDragOver(event)">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>45-degree side photo</p>
+                                <p class="upload-hint">Your face should be visible at a 45-degree angle</p>
+                            </div>
+                            <input type="file" id="photo-input-45" accept="image/*" capture="user" style="display: none;" onchange="handleFileUpload(event, '45')">
+                            <div class="uploaded-image" id="uploaded-image-45" style="display: none;">
+                                <img id="preview-image-45" src="" alt="45-degree Side Photo">
+                                <button class="btn btn-secondary btn-sm" onclick="removeImage('45')">Remove</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 90-degree Side Photo -->
+                        <div class="upload-item">
+                            <h4><i class="fas fa-user-secret"></i> 90-degree Side Photo</h4>
+                            <div class="upload-zone" id="upload-zone-90" data-type="90" onclick="document.getElementById('photo-input-90').click()" ondrop="handleDrop(event, '90')" ondragover="handleDragOver(event)">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>90-degree side photo</p>
+                                <p class="upload-hint">Your face should be completely in profile view</p>
+                            </div>
+                            <input type="file" id="photo-input-90" accept="image/*" capture="user" style="display: none;" onchange="handleFileUpload(event, '90')">
+                            <div class="uploaded-image" id="uploaded-image-90" style="display: none;">
+                                <img id="preview-image-90" src="" alt="90-degree Side Photo">
+                                <button class="btn btn-secondary btn-sm" onclick="removeImage('90')">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-buttons-center">
+                        <button class="btn btn-primary" onclick="nextStep()" id="next-step-3" disabled>Next Step</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: AI Analysis Loading -->
+                <div class="step-panel" id="step-3">
+                    <h2>AI is analyzing your images...</h2>
+                    <div class="loading-page">
+                        <div class="loading-content">
+                            <div class="loading-spinner"></div>
+                            <h3>Precise analysis is being conducted for 1-2 minutes</h3>
+                            
+                            <!-- Progress Bar -->
+                            <div class="progress-container">
+                                <!-- Progress Fill -->
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="analysis-progress-fill"></div>
+                                </div>
+                                
+                                <!-- Progress Text -->
+                                <div class="progress-text" id="analysis-progress-text">Preparing analysis<span class="loading-dots" id="loading-dots"></span></div>
+                            </div>
+                            
+
+                        </div>
+                    </div>
+                </div>
+
+                        <!-- Step 4: Feedback -->
+        <div class="step-panel" id="step-4">
+            <h2>Face Analysis Results</h2>
+            
+            <!-- Uploaded Images Display -->
+            <div class="uploaded-image-section">
+                <div class="analysis-images-grid">
+                    <div class="analysis-image-item">
+                        <h4><i class="fas fa-user"></i> Front Photo</h4>
+                        <img id="step4-uploaded-image-front" src="" alt="Front Photo" class="analysis-image">
+                    </div>
+                    <div class="analysis-image-item">
+                        <h4><i class="fas fa-user-friends"></i> 45-degree Side Photo</h4>
+                        <img id="step4-uploaded-image-45" src="" alt="45-degree Side Photo" class="analysis-image">
+                    </div>
+                    <div class="analysis-image-item">
+                        <h4><i class="fas fa-user-secret"></i> 90-degree Side Photo</h4>
+                        <img id="step4-uploaded-image-90" src="" alt="90-degree Side Photo" class="analysis-image">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feedback-container">
+                <div class="feedback-details">
+                    <div class="complete-analysis">
+                        <div class="point-display" id="point-display">
+                            <!-- Points will be displayed here in large font -->
+                        </div>
+                        <div class="analysis-content" id="complete-analysis-content">
+                            <p>Waiting for analysis results...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+                                <div class="step-buttons">
+                                    <button class="btn btn-back-to-main" onclick="goToMain()" id="back-to-main-btn">
+                                        <i class="fas fa-home"></i> Back to Main Page
+                                    </button>
+                                    <button class="btn btn-success" onclick="saveStep4AsImage()" id="save-step4">
+                                        <i class="fas fa-image"></i> Save as Image
+                                    </button>
+                                </div>
+        </div>
+
+            </div>
+        </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; Better Me Personal information is deleted immediately after use.</p>
+    </footer>
+
+    <!-- Loading Modal -->
+    <div class="modal" id="loading-modal">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <p id="modal-message">Processing...</p>
+        </div>
+    </div>
+
+    <!-- html2canvas library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script src="script.js"></script>
+    <script>
+        
+        // Console logs for debugging
+        console.log('Better U app loaded.');
+        console.log('Current step:', 1);
+        
+        // Expose global functions for console testing
+        window.testApp = {
+            nextStep: window.nextStep,
+            prevStep: window.prevStep,
+            currentStep: () => window.currentStep
+        };
+        
+        // Step 3 button click test function
+        window.testStep3 = function() {
+            console.log('=== Step 3 Button Click Test ===');
+            console.log('Current currentStep:', window.currentStep);
+            console.log('Step 3 button exists:', !!document.getElementById('next-step-3'));
+            console.log('Step 3 button onclick attribute:', document.getElementById('next-step-3')?.onclick);
+            console.log('Step 3 button HTML:', document.getElementById('next-step-3')?.outerHTML);
+            
+            // Force move to step 3
+            window.currentStep = 3;
+            console.log('currentStep set to 3 completed');
+            
+            // Show step 3 panel
+            const step3Panel = document.getElementById('step-3');
+            if (step3Panel) {
+                document.querySelectorAll('.step-panel').forEach(panel => panel.classList.remove('active'));
+                step3Panel.classList.add('active');
+                console.log('Step 3 panel activation completed');
+            }
+            
+            // Update progress steps
+            if (window.updateProgressSteps) {
+                window.updateProgressSteps();
+                console.log('Progress steps update completed');
+            }
+        };
+        
+        // Error handling
+        window.addEventListener('error', function(e) {
+            console.error('Global error occurred:', e.error);
+            alert('An error occurred in the app. Please check the console.');
+        });
+        
+        // Promise error handling
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Promise error occurred:', e.reason);
+            alert('An error occurred in async operation. Please check the console.');
+        });
+        
+        // Save state on page unload
+        window.addEventListener('beforeunload', function() {
+            if (window.saveAppState) {
+                window.saveAppState();
+            }
+        });
+
+        // 얼굴분석 완료 후 saveAppState 호출을 위한 이벤트 리스너
+        document.addEventListener('DOMContentLoaded', function() {
+            // 4단계 완료 감지를 위한 MutationObserver
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                        const analysisContent = document.getElementById('complete-analysis-content');
+                        if (analysisContent && analysisContent.innerHTML.includes('Analysis complete') && !analysisContent.innerHTML.includes('Waiting for')) {
+                            console.log('얼굴분석 완료 감지됨, saveAppState 호출');
+                            if (window.saveAppState) {
+                                window.saveAppState();
+                            }
+                        }
+                    }
+                });
+            });
+
+            const targetNode = document.getElementById('complete-analysis-content');
+            if (targetNode) {
+                observer.observe(targetNode, {
+                    childList: true,
+                    subtree: true,
+                    characterData: true
+                });
+            }
+        });
+
+        // Function to return to hub website
+        function goToHub() {
+            const hostname = window.location.hostname;
+
+            if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+                window.location.href = `http://${hostname}:8080`; // Local hub
+            } else {
+                window.location.href = `https://${hostname}/`; // Deployed hub (root)
+            }
+        }
+        window.goToHub = goToHub;
+        
+        // Function to return to main page
+        function goToMain() {
+            const hostname = window.location.hostname;
+
+            if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+                window.location.href = `http://${hostname}:3000/`; // Local main page
+            } else {
+                window.location.href = `https://${hostname}/`; // Deployed main page (root)
+            }
+        }
+        window.goToMain = goToMain;
+        
+        // 메이크업 팁 분석 페이지로 이동하는 함수
+        async function goToMakeupTipsAnalysis() {
+            // 얼굴분석 결과 ID 확인
+            let faceAnalysisResultId = sessionStorage.getItem('beautyAI_resultId');
+            
+            if (!faceAnalysisResultId) {
+                // 얼굴분석 결과가 없으면 서버에 저장 시도
+                console.log('얼굴분석 결과 ID가 없습니다. 서버에 저장을 시도합니다...');
+                
+                // analysisResults가 있는지 확인하고 서버에 저장
+                if (window.analysisResults && window.saveAppState) {
+                    try {
+                        await window.saveAppState();
+                        faceAnalysisResultId = sessionStorage.getItem('beautyAI_resultId');
+                        console.log('서버 저장 후 얻은 ID:', faceAnalysisResultId);
+                    } catch (error) {
+                        console.error('서버 저장 실패:', error);
+                    }
+                }
+                
+                // 여전히 ID가 없으면 직접 서버에 저장 시도
+                if (!faceAnalysisResultId && window.analysisResults && window.uploadedImages) {
+                    try {
+                        console.log('직접 서버에 분석 결과 저장 시도...');
+                        
+                        const imageDataForStorage = {};
+                        if (window.uploadedImages.front && window.uploadedImages.front.dataUrl) {
+                            imageDataForStorage.front = { dataUrl: window.uploadedImages.front.dataUrl };
+                        }
+                        if (window.uploadedImages['45'] && window.uploadedImages['45'].dataUrl) {
+                            imageDataForStorage['45'] = { dataUrl: window.uploadedImages['45'].dataUrl };
+                        }
+                        if (window.uploadedImages['90'] && window.uploadedImages['90'].dataUrl) {
+                            imageDataForStorage['90'] = { dataUrl: window.uploadedImages['90'].dataUrl };
+                        }
+
+                        const response = await fetch(`${window.getApiBaseUrl ? window.getApiBaseUrl() : ''}/api/save-analysis-result`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                analysisResult: window.analysisResults.raw_analysis,
+                                uploadedImages: imageDataForStorage,
+                                currentStep: 4
+                            })
+                        });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            sessionStorage.setItem('beautyAI_resultId', result.resultId);
+                            faceAnalysisResultId = result.resultId;
+                            console.log('직접 서버 저장 성공:', result.resultId);
+                        }
+                    } catch (error) {
+                        console.error('직접 서버 저장 실패:', error);
+                    }
+                }
+                
+                if (!faceAnalysisResultId) {
+                    alert('Face analysis results are required. Please complete face analysis first.');
+                    return;
+                }
+            }
+            
+            console.log('메이크업 팁 분석 페이지로 이동, ID:', faceAnalysisResultId);
+            // 메이크업 팁 분석 페이지로 이동
+            window.location.href = 'makeup-tips-analysis-en.html';
+        }
+        window.goToMakeupTipsAnalysis = goToMakeupTipsAnalysis;
+    </script>
+</body>
+</html>

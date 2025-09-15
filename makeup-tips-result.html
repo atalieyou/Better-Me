@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Better Me - 메이크업 팁 결과</title>
+    <link rel="stylesheet" href="styles.css?v=18">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-BVF6W1YC2F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);} 
+      gtag('js', new Date());
+      gtag('config', 'G-BVF6W1YC2F');
+    </script>
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="logo-container">
+            <img src="better-me-logo.png" alt="Better Me" class="main-logo">
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <!-- 단계별 진행 표시 -->
+        <div class="progress-steps">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">사진 활용 동의</div>
+            </div>
+            <div class="step active" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">사진 업로드</div>
+            </div>
+            <div class="step active" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">메이크업 팁 분석</div>
+            </div>
+            <div class="step active" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-label">결과 확인</div>
+            </div>
+        </div>
+
+        <!-- 4단계: 메이크업 팁 분석 결과 -->
+        <div class="step-panel active" id="step-4">
+            <h2>팁 제작 결과</h2>
+            
+            <!-- 업로드된 이미지들 표시 -->
+            <div class="uploaded-image-section">
+                <div class="analysis-images-grid">
+                    <div class="analysis-image-item">
+                        <h4><i class="fas fa-user"></i> 정면 사진</h4>
+                        <img id="step4-uploaded-image-front" src="" alt="정면 사진" class="analysis-image">
+                    </div>
+                    <div class="analysis-image-item">
+                        <h4><i class="fas fa-user-friends"></i> 45도 측면 사진</h4>
+                        <img id="step4-uploaded-image-45" src="" alt="45도 측면 사진" class="analysis-image">
+                    </div>
+                    <div class="analysis-image-item">
+                        <h4><i class="fas fa-user-secret"></i> 90도 측면 사진</h4>
+                        <img id="step4-uploaded-image-90" src="" alt="90도 측면 사진" class="analysis-image">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feedback-container">
+                <div class="feedback-details">
+                    <div class="complete-analysis">
+                        <div class="analysis-content" id="complete-analysis-content">
+                            <p>팁 제작 결과를 기다리는 중...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="step-buttons">
+                <button class="btn btn-success" onclick="saveStep4AsImage()" id="save-step4">
+                    <i class="fas fa-image"></i> 이미지로 저장하기
+                </button>
+                <button class="btn btn-primary" onclick="goToPayment()" id="tip-creation-btn">
+                    <i class="fas fa-palette"></i> 헤어/메이크업 팁 제작하기
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <p>&copy; 2024 Better Me. All rights reserved.</p>
+                <p>인천광역시 계양구 서운산단로1길 19 (서운동) DSE 320호</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 전역 변수
+        let analysisResults = null;
+        let uploadedImages = null;
+
+        // 페이지 로드 시 실행
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('메이크업 팁 결과 페이지 로드됨');
+            
+            // DOM 요소 존재 확인
+            const analysisContent = document.getElementById('complete-analysis-content');
+            console.log('분석 결과 컨테이너 요소:', analysisContent);
+            
+            if (analysisContent) {
+                console.log('분석 결과 컨테이너 스타일:', window.getComputedStyle(analysisContent));
+                console.log('분석 결과 컨테이너 크기:', analysisContent.offsetWidth, 'x', analysisContent.offsetHeight);
+            }
+            
+            loadMakeupTipsResults();
+            loadUploadedImages();
+        });
+
+        // 메이크업 팁 결과 로드
+        function loadMakeupTipsResults() {
+            try {
+                const savedResults = sessionStorage.getItem('beautyAI_makeupTipsResults');
+                console.log('세션 스토리지에서 가져온 메이크업 팁 결과:', savedResults);
+                
+                if (savedResults) {
+                    analysisResults = JSON.parse(savedResults);
+                    console.log('파싱된 메이크업 팁 결과:', analysisResults);
+                    displayFullAIResponse(analysisResults);
+                    console.log('메이크업 팁 결과 로드 완료');
+                } else {
+                    console.error('메이크업 팁 결과를 찾을 수 없습니다');
+                    const analysisContent = document.getElementById('complete-analysis-content');
+                    if (analysisContent) {
+                        analysisContent.innerHTML = '<div class="error-message">팁 제작 결과를 찾을 수 없습니다.</div>';
+                    }
+                }
+            } catch (error) {
+                console.error('메이크업 팁 결과 로드 오류:', error);
+            }
+        }
+
+        // 업로드된 이미지 로드 및 표시
+        function loadUploadedImages() {
+            try {
+                const savedImages = sessionStorage.getItem('beautyAI_uploadedImages');
+                if (savedImages) {
+                    uploadedImages = JSON.parse(savedImages);
+                    displayStep4Images();
+                    console.log('업로드된 이미지 로드 완료');
+                } else {
+                    console.error('업로드된 이미지를 찾을 수 없습니다');
+                }
+            } catch (error) {
+                console.error('이미지 로드 오류:', error);
+            }
+        }
+
+        // 4단계 이미지 표시
+        function displayStep4Images() {
+            if (!uploadedImages) return;
+
+            // 정면 이미지 표시
+            if (uploadedImages.front && uploadedImages.front.dataUrl) {
+                const frontPreview = document.getElementById('step4-uploaded-image-front');
+                if (frontPreview) {
+                    frontPreview.src = uploadedImages.front.dataUrl;
+                }
+            }
+
+            // 45도 측면 이미지 표시
+            if (uploadedImages['45'] && uploadedImages['45'].dataUrl) {
+                const side45Preview = document.getElementById('step4-uploaded-image-45');
+                if (side45Preview) {
+                    side45Preview.src = uploadedImages['45'].dataUrl;
+                }
+            }
+
+            // 90도 측면 이미지 표시
+            if (uploadedImages['90'] && uploadedImages['90'].dataUrl) {
+                const side90Preview = document.getElementById('step4-uploaded-image-90');
+                if (side90Preview) {
+                    side90Preview.src = uploadedImages['90'].dataUrl;
+                }
+            }
+        }
+
+        // AI 응답 표시 (얼굴분석과 동일한 구조)
+        function displayFullAIResponse(analysisData) {
+            try {
+                const analysisContent = document.getElementById('complete-analysis-content');
+                if (!analysisContent) {
+                    console.error('분석 결과 표시 컨테이너를 찾을 수 없습니다');
+                    return;
+                }
+
+                if (!analysisData || !analysisData.raw_analysis) {
+                    console.error('분석 데이터가 없습니다:', analysisData);
+                    analysisContent.innerHTML = '<p>분석 결과를 찾을 수 없습니다.</p>';
+                    return;
+                }
+
+                // AI 분석 결과를 얼굴분석과 동일한 formatAnalysisResult 함수로 구조화
+                const analysisText = analysisData.raw_analysis;
+                console.log('원본 분석 텍스트:', analysisText);
+                const formattedContent = formatAnalysisResult(analysisText);
+                console.log('포맷된 HTML 콘텐츠:', formattedContent);
+                analysisContent.innerHTML = formattedContent;
+                
+                console.log('AI 응답 표시 완료');
+            } catch (error) {
+                console.error('AI 응답 표시 중 오류:', error);
+                const analysisContent = document.getElementById('complete-analysis-content');
+                if (analysisContent) {
+                    analysisContent.innerHTML = '<p>결과를 표시하는 중 오류가 발생했습니다.</p>';
+                }
+            }
+        }
+
+        // 분석 결과를 Figma 디자인에 맞게 구조화된 HTML로 변환 (얼굴분석과 동일)
+        function formatAnalysisResult(text) {
+            if (!text) {
+                console.log('formatAnalysisResult: 빈 텍스트');
+                return '';
+            }
+            
+            console.log('formatAnalysisResult 시작, 텍스트 길이:', text.length);
+            
+            // 텍스트를 줄 단위로 분할
+            const lines = text.split('\n').filter(line => line.trim());
+            console.log('분할된 줄 수:', lines.length);
+            
+            let html = '';
+            let currentSection = '';
+            let sectionContent = '';
+            
+            lines.forEach((line, index) => {
+                const trimmedLine = line.trim();
+                
+                // **숫자. 제목** 형식의 메인 섹션 (ChatGPT 응답 형식)
+                if (trimmedLine.match(/^\*\*\d+\.\s*.*\*\*$/)) {
+                    // 이전 섹션 닫기
+                    if (currentSection) {
+                        html += `<div class="section">
+                            <div class="main-title">${currentSection}</div>
+                            <div class="content-text">${sectionContent}</div>
+                            <div class="divider"></div>
+                        </div>`;
+                        sectionContent = '';
+                    }
+                    
+                    // **제목** 형식을 메인 섹션으로 처리
+                    const titleText = trimmedLine.replace(/\*\*/g, '');
+                    const sectionNumber = titleText.match(/^(\d+)\./);
+                    if (sectionNumber) {
+                        const iconMap = {
+                            '1': '👁️', '2': '👃', '3': '👄', '4': '✨', '5': '🎨', '6': '💉', '7': '💇'
+                        };
+                        const icon = iconMap[sectionNumber[1]] || '📋';
+                        currentSection = `${icon} ${titleText}`;
+                    } else {
+                        currentSection = titleText;
+                    }
+                }
+                // ### 마크다운 제목 (백업용)
+                else if (trimmedLine.startsWith('###')) {
+                    // 이전 섹션 닫기
+                    if (currentSection) {
+                        html += `<div class="section">
+                            <div class="main-title">${currentSection}</div>
+                            <div class="content-text">${sectionContent}</div>
+                            <div class="divider"></div>
+                        </div>`;
+                        sectionContent = '';
+                    }
+                    
+                    // ### 제목을 메인 섹션으로 처리
+                    const titleText = trimmedLine.replace(/^###\s*/, '');
+                    const sectionNumber = titleText.match(/^(\d+)\./);
+                    if (sectionNumber) {
+                        const iconMap = {
+                            '1': '👁️', '2': '👃', '3': '👄', '4': '✨', '5': '🎨', '6': '💉', '7': '💇'
+                        };
+                        const icon = iconMap[sectionNumber[1]] || '📋';
+                        currentSection = `${icon} ${titleText}`;
+                    } else {
+                        currentSection = titleText;
+                    }
+                }
+                // 숫자로 시작하는 제목 (1. 2. 3. 등) - 서브 섹션
+                else if (/^\d+\./.test(trimmedLine)) {
+                    sectionContent += `<div class="subtitle">${trimmedLine}</div>`;
+                }
+                // **제목** 형식의 강조 텍스트 (서브 제목)
+                else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+                    const titleText = trimmedLine.replace(/\*\*/g, '');
+                    sectionContent += `<div class="subtitle">${titleText}</div>`;
+                }
+                // 콜론으로 끝나는 소제목 (정면기준:, 45도/90도 기준: 등)
+                else if (trimmedLine.includes(':') && !trimmedLine.includes('**')) {
+                    sectionContent += `<div class="subtitle">${trimmedLine}</div>`;
+                }
+                // 강조 텍스트 (**텍스트**) - 일반 강조
+                else if (trimmedLine.includes('**')) {
+                    const formattedLine = trimmedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    sectionContent += `<div class="content-line">${formattedLine}</div>`;
+                }
+                // 빈 줄이 아닌 일반 텍스트
+                else if (trimmedLine.length > 0) {
+                    sectionContent += `<div class="content-line">${trimmedLine}</div>`;
+                }
+                
+                // 마지막 줄인 경우 섹션 닫기
+                if (index === lines.length - 1) {
+                    if (currentSection) {
+                        html += `<div class="section">
+                            <div class="main-title">${currentSection}</div>
+                            <div class="content-text">${sectionContent}</div>
+                        </div>`;
+                    }
+                }
+            });
+            
+            // 전체를 Figma 디자인 컨테이너로 감싸기
+            const result = `<div class="analysis-result-container">${html}</div>`;
+            console.log('formatAnalysisResult 완료, 생성된 HTML 길이:', result.length);
+            console.log('최종 HTML:', result);
+            return result;
+        }
+
+        // 4단계 이미지 저장 함수
+        async function saveStep4AsImage() {
+            try {
+                console.log('=== 4단계 이미지 저장 시작 ===');
+                
+                // 현재 날짜와 시간으로 파일명 생성
+                const now = new Date();
+                const dateString = now.toISOString().slice(0, 19).replace(/[:-]/g, '');
+                
+                // 4단계 캡처
+                console.log('4단계 캡처 시작...');
+                const step4Element = document.getElementById('step-4');
+                console.log('4단계 요소 찾기 결과:', step4Element);
+                
+                if (step4Element) {
+                    // 4단계 이미지들이 제대로 로드되었는지 확인
+                    const step4Images = step4Element.querySelectorAll('img[id*="step4-uploaded-image"]');
+                    console.log('4단계에서 찾은 이미지 개수:', step4Images.length);
+                    
+                    // 이미지 로딩 상태 확인 및 강제 로딩
+                    let allImagesLoaded = true;
+                    for (let img of step4Images) {
+                        console.log(`이미지 확인:`, img.id, 'src:', img.src, 'complete:', img.complete);
+                        
+                        if (img.src && img.src !== '') {
+                            // 이미지가 로드되지 않았다면 강제로 로드
+                            if (!img.complete) {
+                                console.log(`${img.id} 이미지 로딩 대기 중...`);
+                                await new Promise((resolve, reject) => {
+                                    const timeout = setTimeout(() => {
+                                        console.warn(`${img.id} 이미지 로딩 타임아웃`);
+                                        resolve();
+                                    }, 2000);
+                                    
+                                    img.onload = () => {
+                                        clearTimeout(timeout);
+                                        console.log(`${img.id} 이미지 로딩 완료`);
+                                        resolve();
+                                    };
+                                    
+                                    img.onerror = () => {
+                                        clearTimeout(timeout);
+                                        console.error(`${img.id} 이미지 로딩 실패`);
+                                        allImagesLoaded = false;
+                                        resolve();
+                                    };
+                                });
+                            }
+                        } else {
+                            console.warn(`${img.id} 이미지 src가 비어있음`);
+                            allImagesLoaded = false;
+                        }
+                    }
+                    
+                    console.log('모든 이미지 로딩 상태:', allImagesLoaded);
+                    
+                    // 4단계를 현재 화면에 표시된 상태로 캡처
+                    const canvas4 = await html2canvas(step4Element, {
+                        scale: 2, // 고해상도로 설정
+                        useCORS: true,
+                        allowTaint: true,
+                        logging: true, // 디버깅을 위해 로깅 활성화
+                        removeContainer: false,
+                        imageTimeout: 5000, // 이미지 로딩 대기 시간 증가
+                        foreignObjectRendering: false,
+                        backgroundColor: '#ffffff' // 배경색 설정
+                    });
+                    
+                    console.log('4단계 캔버스 크기:', canvas4.width, 'x', canvas4.height);
+                    
+                    // 4단계 이미지 다운로드
+                    const fileName4 = `makeup-tips-result-${dateString}.png`;
+                    downloadImage(canvas4, fileName4);
+                    console.log('4단계 이미지 저장 완료:', fileName4);
+                    
+                    // 성공 메시지
+                    alert('메이크업 팁 결과 이미지가 성공적으로 저장되었습니다!');
+                    
+                } else {
+                    console.error('4단계 요소를 찾을 수 없습니다.');
+                    alert('4단계 요소를 찾을 수 없습니다.');
+                }
+                
+            } catch (error) {
+                console.error('4단계 이미지 저장 중 오류 발생:', error);
+                alert('4단계 이미지 저장 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        // 이미지 다운로드 함수
+        function downloadImage(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            console.log('이미지 다운로드 완료:', filename);
+        }
+
+        // 결제 페이지로 이동하는 함수
+        function goToPayment() {
+            window.location.href = 'payment.html';
+        }
+    </script>
+</body>
+</html>
