@@ -232,12 +232,29 @@ function updateAnalysisProgress(progress) {
     console.log('AI 분석 진행 상황 업데이트:', progress);
     
     try {
+        // progress가 유효한지 확인
+        if (!progress || typeof progress !== 'object') {
+            console.warn('진행 상황 데이터가 유효하지 않습니다:', progress);
+            return;
+        }
+        
         const progressFill = document.getElementById('analysis-progress-fill');
         const progressText = document.getElementById('analysis-progress-text');
         
         if (progressFill && progressText) {
-            progressFill.style.width = progress.percentage + '%';
-            updateProgressStatusWithRepeatingTyping(progress.message, 80);
+            // percentage가 유효한지 확인
+            const percentage = (progress.percentage !== undefined && progress.percentage !== null) 
+                ? Math.max(0, Math.min(100, progress.percentage)) 
+                : 0;
+            
+            progressFill.style.width = percentage + '%';
+            
+            // message가 유효한지 확인
+            const message = (progress.message && typeof progress.message === 'string') 
+                ? progress.message 
+                : '분석 중...';
+            
+            updateProgressStatusWithRepeatingTyping(message, 80);
         }
     } catch (error) {
         console.error('진행 상황 업데이트 중 오류:', error);
@@ -2653,6 +2670,11 @@ async function saveAnalysisResult() {
 function startRepeatingTypeWriter(element, text, speed = 80) {
     let isRunning = true;
     
+    // text가 undefined이거나 null인 경우 기본값 설정
+    if (!text || typeof text !== 'string') {
+        text = '분석 중...';
+    }
+    
     function typeWriter() {
         if (!isRunning) return;
         
@@ -2694,6 +2716,11 @@ function startRepeatingTypeWriter(element, text, speed = 80) {
 function updateProgressStatusWithRepeatingTyping(text, speed = 80) {
     const progressText = document.getElementById('analysis-progress-text');
     if (progressText) {
+        // text가 유효하지 않은 경우 기본값 설정
+        if (!text || typeof text !== 'string') {
+            text = '분석 중...';
+        }
+        
         // 이전 타이핑 효과 정지
         if (window.currentTypeWriter) {
             window.currentTypeWriter.stop();
