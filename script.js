@@ -9,7 +9,7 @@ function getApiBaseUrl() {
     const hostname = window.location.hostname;
     
     // API 서버는 항상 3000 포트에서 실행 중
-    const apiPort = '3002';
+    const apiPort = '3000';
     
     // localhost나 로컬 IP인 경우 HTTP 사용
     if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
@@ -18,6 +18,19 @@ function getApiBaseUrl() {
     
     // 외부 도메인인 경우 HTTPS 사용
     return `https://${hostname}`;
+}
+
+// WebSocket URL을 동적으로 가져오는 함수
+function getWebSocketUrl() {
+    const hostname = window.location.hostname;
+    
+    // localhost나 로컬 IP인 경우 WS 사용
+    if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+        return `ws://${hostname}:3000/ws`;
+    }
+    
+    // 배포 환경에서는 WSS 사용
+    return `wss://${hostname}/ws`;
 }
 
 // WebSocket 관련 전역 변수
@@ -122,8 +135,8 @@ function setupWebSocket() {
     console.log('=== WebSocket 연결 설정 시작 ===');
     
     try {
-        // WebSocket 서버 URL 설정 (개발 환경)
-        const wsUrl = 'ws://localhost:3000/ws';
+        // WebSocket 서버 URL 설정 (동적 감지)
+        const wsUrl = getWebSocketUrl();
         
         // WebSocket 연결 생성
         const ws = new WebSocket(wsUrl);
@@ -131,6 +144,7 @@ function setupWebSocket() {
         // 연결 성공 시
         ws.onopen = function() {
             console.log('WebSocket 연결 성공');
+            isWebSocketConnected = true;
             
             // 연결 상태를 전역 변수에 저장
             window.ws = ws;
@@ -187,6 +201,7 @@ function setupWebSocket() {
         // 연결 오류 시
         ws.onerror = function(error) {
             console.error('WebSocket 연결 오류:', error);
+            isWebSocketConnected = false;
             // 오류가 발생해도 앱 실행을 중단하지 않음
             console.log('WebSocket 연결 실패했지만 앱은 계속 실행됩니다.');
         };
@@ -194,6 +209,7 @@ function setupWebSocket() {
         // 연결 종료 시
         ws.onclose = function(event) {
             console.log('WebSocket 연결 종료:', event.code, event.reason);
+            isWebSocketConnected = false;
             
             // 재연결 시도 (5초 후)
             setTimeout(() => {
@@ -307,6 +323,68 @@ function handleMakeupAnalysisComplete(result) {
     }
 }
 
+
+// 앱 완전 초기화 함수
+function resetAppToInitialState() {
+    console.log('=== 앱 완전 초기화 시작 ===');
+    
+    // 전역 변수 초기화
+    currentStep = 1;
+    uploadedImage = null;
+    analysisResults = null;
+    feedbackData = null;
+    
+    // 세션 스토리지 초기화
+    sessionStorage.removeItem('beautyAI_currentStep');
+    sessionStorage.removeItem('beautyAI_uploadedImages');
+    sessionStorage.removeItem('beautyAI_analysisResults');
+    sessionStorage.removeItem('beautyAI_feedbackData');
+    sessionStorage.removeItem('beautyAI_resultId');
+    sessionStorage.removeItem('beautyAI_faceAnalysisResultId');
+    
+    // 로컬 스토리지 초기화 (필요한 경우)
+    localStorage.removeItem('beautyAI_appState');
+    
+    // WebSocket 연결 상태 초기화
+    isWebSocketConnected = false;
+    if (window.ws) {
+        window.ws.close();
+        window.ws = null;
+    }
+    
+    // UI 초기화
+    showStep(1);
+    updateProgressSteps();
+    
+    // 동의 체크박스 초기화
+    const photoConsent = document.getElementById('photo-consent');
+    const serviceTerms = document.getElementById('service-terms');
+    if (photoConsent) photoConsent.checked = false;
+    if (serviceTerms) serviceTerms.checked = false;
+    
+    // 이미지 제거
+    removeImage();
+    
+    // 분석 결과 UI 초기화
+    const analysisDetails = document.getElementById('analysis-details');
+    const improvedPlaceholder = document.getElementById('improved-placeholder');
+    const finalImproved = document.getElementById('final-improved');
+    
+    if (analysisDetails) analysisDetails.style.display = 'none';
+    if (improvedPlaceholder) improvedPlaceholder.style.display = 'block';
+    if (finalImproved) finalImproved.style.display = 'none';
+    
+    // 피드백 폼 초기화
+    const feedbackForm = document.getElementById('feedback-form');
+    if (feedbackForm) {
+        feedbackForm.reset();
+    }
+    
+    // 페이지 상단으로 스크롤
+    window.scrollTo(0, 0);
+    
+    console.log('=== 앱 완전 초기화 완료 ===');
+}
 
 // 앱 초기화
 async function initializeApp() {
@@ -2069,11 +2147,20 @@ async function startAnalysis() {
                 console.log('🔍 분석 결과 데이터:', result.analysis);
                 console.log('🔍 세션 ID:', result.sessionId);
                 
-                // WebSocket으로 이미 처리되었는지 확인
-                if (analysisResults && analysisResults.raw_analysis) {
-                    console.log('✅ WebSocket으로 이미 분석 결과 처리됨, HTTP 응답 무시');
-                    return;
+            // WebSocket으로 이미 처리되었는지 확인
+            if (analysisResults && analysisResults.raw_analysis) {
+                console.log('✅ WebSocket으로 이미 분석 결과 처리됨, HTTP 응답 무시');
+                return;
+            }
+            
+            // WebSocket 연결이 실패한 경우 HTTP 폴링으로 대체
+            if (!isWebSocketConnected) {
+                console.log('⚠️ WebSocket 연결 실패, HTTP 폴링으로 대체');
+                if (result.sessionId) {
+                    startAnalysisPolling(result.sessionId);
                 }
+                return;
+            }
                 
                 // 분석 결과가 즉시 반환되었는지 확인
                 if (result.analysis && result.analysis.analysis) {
@@ -2158,8 +2245,14 @@ async function startAnalysis() {
                 stack: apiError.stack,
                 name: apiError.name
             });
-            const processingErrorMessage = document.documentElement.lang === 'en' ? `Error occurred during analysis processing: ${apiError.message}` : `분석 처리 중 오류가 발생했습니다: ${apiError.message}`;
-            showError(processingErrorMessage);
+            
+            // 네트워크 오류인 경우 더 구체적인 메시지 표시
+            if (apiError.message.includes('Failed to fetch') || apiError.message.includes('ERR_CONNECTION_RESET')) {
+                showError('서버에 연결할 수 없습니다. 네트워크 연결을 확인하고 다시 시도해주세요.');
+            } else {
+                const processingErrorMessage = document.documentElement.lang === 'en' ? `Error occurred during analysis processing: ${apiError.message}` : `분석 처리 중 오류가 발생했습니다: ${apiError.message}`;
+                showError(processingErrorMessage);
+            }
         }
 
     } catch (error) {
@@ -3038,7 +3131,16 @@ async function saveStep4AsImage() {
         const step4Element = document.getElementById('step-4');
         console.log('4단계 요소 찾기 결과:', step4Element);
         
+        
         if (step4Element) {
+            // html2canvas 라이브러리 확인
+            if (typeof html2canvas === 'undefined') {
+                console.error('html2canvas 라이브러리가 로드되지 않았습니다.');
+                showError('이미지 저장을 위한 라이브러리가 로드되지 않았습니다. 페이지를 새로고침해주세요.');
+                return;
+            }
+            console.log('html2canvas 라이브러리 확인 완료');
+            
             // 4단계 이미지들이 제대로 로드되었는지 확인
             const step4Images = step4Element.querySelectorAll('img[id*="step4-uploaded-image"]');
             console.log('4단계에서 찾은 이미지 개수:', step4Images.length);

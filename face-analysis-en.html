@@ -253,6 +253,7 @@
         console.log('Better U app loaded.');
         console.log('Current step:', 1);
         
+        
         // Expose global functions for console testing
         window.testApp = {
             nextStep: window.nextStep,
@@ -347,6 +348,25 @@
         
         // Function to return to main page
         function goToMain() {
+            // 앱 상태 완전 초기화
+            if (typeof resetAppToInitialState === 'function') {
+                resetAppToInitialState();
+            } else {
+                // 전역 변수 초기화
+                if (window.currentStep) window.currentStep = 1;
+                if (window.uploadedImage) window.uploadedImage = null;
+                if (window.analysisResults) window.analysisResults = null;
+                if (window.feedbackData) window.feedbackData = null;
+                
+                // 세션 스토리지 초기화
+                sessionStorage.removeItem('beautyAI_currentStep');
+                sessionStorage.removeItem('beautyAI_uploadedImages');
+                sessionStorage.removeItem('beautyAI_analysisResults');
+                sessionStorage.removeItem('beautyAI_feedbackData');
+                sessionStorage.removeItem('beautyAI_resultId');
+                sessionStorage.removeItem('beautyAI_faceAnalysisResultId');
+            }
+            
             const hostname = window.location.hostname;
 
             if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {

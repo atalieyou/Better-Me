@@ -9,7 +9,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 require('dotenv').config();
 
-const { analyzeFaceWithChatGPT5, analyzeMakeupTipsWithImages } = require('./services/gpt4oService');
+const { analyzeFaceWithChatGPT5, analyzeMakeupTipsWithImages, setWebSocketClients } = require('./services/gpt4oService');
 
 const app = express();
 const server = http.createServer(app);
@@ -18,6 +18,9 @@ const PORT = process.env.PORT || 3000;
 
 // WebSocket 연결 관리
 const clients = new Map(); // sessionId -> WebSocket 연결
+
+// WebSocket 클라이언트를 서비스에 전달
+setWebSocketClients(clients);
 
 // WebSocket 연결 처리
 wss.on('connection', (ws, req) => {

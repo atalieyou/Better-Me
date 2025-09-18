@@ -243,8 +243,6 @@
         </div>
     </div>
 
-    <!-- html2canvas 라이브러리 추가 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <script src="script.js"></script>
     <script>
@@ -252,6 +250,7 @@
         // 디버깅을 위한 콘솔 로그
         console.log('Better U 앱이 로드되었습니다.');
         console.log('현재 단계:', 1);
+        
         
         // 전역 함수들을 콘솔에서 테스트할 수 있도록 노출
         window.testApp = {
@@ -308,6 +307,25 @@
         
         // 메인페이지로 돌아가기 함수
         function goToMain() {
+            // 앱 상태 완전 초기화
+            if (typeof resetAppToInitialState === 'function') {
+                resetAppToInitialState();
+            } else {
+                // 전역 변수 초기화
+                if (window.currentStep) window.currentStep = 1;
+                if (window.uploadedImage) window.uploadedImage = null;
+                if (window.analysisResults) window.analysisResults = null;
+                if (window.feedbackData) window.feedbackData = null;
+                
+                // 세션 스토리지 초기화
+                sessionStorage.removeItem('beautyAI_currentStep');
+                sessionStorage.removeItem('beautyAI_uploadedImages');
+                sessionStorage.removeItem('beautyAI_analysisResults');
+                sessionStorage.removeItem('beautyAI_feedbackData');
+                sessionStorage.removeItem('beautyAI_resultId');
+                sessionStorage.removeItem('beautyAI_faceAnalysisResultId');
+            }
+            
             const hostname = window.location.hostname;
 
             if (hostname === 'localhost' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
