@@ -90,6 +90,7 @@ Clearly separate each item and **bold** important information.
 - Double eyelid presence, eye size, inner/outer corner degree
 - Eye corner angle, distance between eyes, eye size
 - Size of aegyo-sal (under-eye fat)
+- Left-right asymmetry level
 
 **5. Eyebrows**
 - Eyebrow shape
@@ -153,8 +154,9 @@ Finally, don't ask me any more questions or make recommendations, just finish.
 
 **4. 눈**
 - 쌍커풀 유무, 눈동자 크기, 앞/뒤 트임 정도
-- 눈꼬리 각도, 눈과 눈 사이 거리, 눈 크기
+- 눈 앞머리에서 눈 끝을 연결한 선(눈꼬리 각도)기울기, 눈과 눈 사이 거리, 눈 크기
 - 애교살의 크기
+- 좌우 비대칭 정도
 
 **5. 눈썹**
 - 눈썹 모양
