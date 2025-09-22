@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개인정보 외부 전송·제공 동의 - Better Me</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        
+        .terms-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 0;
+            box-shadow: none;
+            min-height: 100vh;
+        }
+        
+        .terms-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #CD3D3A;
+        }
+        
+        .terms-header h1 {
+            color: #CD3D3A;
+            font-size: 2rem;
+            margin: 0;
+        }
+        
+        .terms-header p {
+            color: #666;
+            margin: 0.5rem 0 0 0;
+        }
+        
+        .terms-content h2 {
+            color: #CD3D3A;
+            font-size: 1.3rem;
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .terms-content h2:first-child {
+            margin-top: 0;
+        }
+        
+        .terms-content p {
+            margin: 1rem 0;
+            line-height: 1.8;
+        }
+        
+        .terms-content ul {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+        
+        .terms-content li {
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+        
+        .terms-content strong {
+            color: #CD3D3A;
+            font-weight: 600;
+        }
+        
+        .back-btn {
+            display: block;
+            background: #CD3D3A;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 2rem auto 0 auto;
+            transition: background 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            width: fit-content;
+        }
+        
+        .back-btn:hover {
+            background: #a02d2a;
+        }
+        
+        .effective-date {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="terms-container">
+        <div class="terms-header">
+            <h1>개인정보 외부 전송·제공 동의</h1>
+            <p>Better Me 얼굴 분석 서비스</p>
+        </div>
+        
+        <div class="terms-content">
+            <h2>1. 제공받는 자</h2>
+            <ul>
+                <li><strong>OpenAI Inc.</strong> (미국 소재)</li>
+            </ul>
+            
+            <h2>2. 제공 항목</h2>
+            <ul>
+                <li>이용자가 업로드한 얼굴 사진</li>
+                <li>분석을 위한 프롬프트 및 관련 텍스트 데이터</li>
+            </ul>
+            
+            <h2>3. 제공 목적</h2>
+            <ul>
+                <li>인공지능 분석 서비스 제공 (얼굴형 및 이목구비 특징 분석)</li>
+            </ul>
+            
+            <h2>4. 보유 및 이용기간</h2>
+            <ul>
+                <li>회사는 결과 데이터를 수신 후 최대 30일 동안 보관 후 삭제</li>
+            </ul>
+        </div>
+        
+        <div class="effective-date">
+            <p>공고일: 2025년 09월 20일</p>
+            <p>시행일: 2025년 09월 20일</p>
+        </div>
+        
+        <button onclick="goBack()" class="back-btn">이전 페이지로 돌아가기</button>
+    </div>
+    
+    <script>
+        function goBack() {
+            // 브라우저 히스토리가 있는 경우
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                // 히스토리가 없는 경우 얼굴분석 페이지로 이동
+                window.location.href = 'face-analysis.html';
+            }
+        }
+        
+        // 페이지 로드 시 확인
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('개인정보 외부 전송·제공 동의 페이지 로드됨');
+            console.log('히스토리 길이:', window.history.length);
+        });
+    </script>
+</body>
+</html>

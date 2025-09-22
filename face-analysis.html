@@ -62,25 +62,23 @@
                         
                         <div class="terms-content">
                             <div class="terms-item">
-                                <h4><input type="checkbox" id="service-terms" required> 서비스 이용약관 동의 <a href="#" class="terms-link">(보기)</a></h4>
+                                <h4><input type="checkbox" id="service-terms" required> 서비스 이용약관 동의 <a href="terms.html" target="_blank" class="terms-link">(보기)</a></h4>
                                 <ul>
-                                    <li>AI 기반 외모 분석 및 평가</li>
-                                    <li>개인 맞춤형 피드백 제공</li>
-                                    <li>개선된 이미지 생성</li>
+                                    <li>AI 기반 외모 분석 서비스입니다</li>
                                 </ul>
                             </div>
                             
                             <div class="terms-item">
-                                <h4><input type="checkbox" id="privacy-consent" required> 개인정보 수집·이용 동의 <a href="#" class="terms-link">(보기)</a></h4>
+                                <h4><input type="checkbox" id="privacy-consent" required> 개인정보 수집·이용 동의 <a href="privacy.html" target="_blank" class="terms-link">(보기)</a></h4>
                                 <ul>
                                     <li>업로드된 사진은 분석 목적으로만 사용됩니다</li>
                                 </ul>
                             </div>
                             
                             <div class="terms-item">
-                                <h4><input type="checkbox" id="privacy-transfer" required> 개인정보의 외부 전송·제공 동의 <a href="privacy-transfer.html" target="_blank" class="terms-link">(보기)</a></h4>
+                                <h4><input type="checkbox" id="privacy-transfer" required> 개인정보의 외부 전송·제공 동의 <a href="external-transfer.html" target="_blank" class="terms-link">(보기)</a></h4>
                                 <ul>
-                                    <li>서버로 전송된 사진은 분석 30일 후 완전 삭제됩니다</li>
+                                    <li>서버(OpenAI)로 전송된 사진은 분석 30일 후 완전 삭제됩니다</li>
                                 </ul>
                             </div>
                         </div>
@@ -101,7 +99,7 @@
                         <ul>
                             <li>얼굴 분석은 메이크업하지 않은 맨 얼굴로 진행됩니다</li>
                             <li>머리를 묶어 이목구비를 가리지 않도록 해주세요</li>
-                            <li>사진 촬영을 통해 분석이 진행되니 카메라 렌즈가 깨끗한지 확인해주세요</li>
+                            <li>어깨까지 노출되는 상반신 샷으로 촬영해주세요</li>
                             <li>분석은 총 1~3분 소요됩니다</li>
                         </ul>
                     </div>
@@ -110,11 +108,11 @@
                         <!-- 정면 사진 -->
                         <div class="upload-item">
                             <h4><i class="fas fa-user"></i> 정면 사진</h4>
-                            <div class="upload-zone" id="upload-zone-front" data-type="front" onclick="document.getElementById('photo-input-front').click()" ondrop="handleDrop(event, 'front')" ondragover="handleDragOver(event)">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p>정면을 향한 사진</p>
-                                <p class="upload-hint">얼굴이 정면을 향하고 있어야 합니다</p>
-                            </div>
+                <div class="upload-zone" id="upload-zone-front" data-type="front" onclick="document.getElementById('photo-input-front').click()" ondrop="handleDrop(event, 'front')" ondragover="handleDragOver(event)">
+                    <i class="fas fa-camera"></i>
+                    <p>정면을 향한 사진</p>
+                    <p class="upload-hint">얼굴이 정면을 향하고 있어야 합니다</p>
+                </div>
                             <input type="file" id="photo-input-front" accept="image/*" capture="user" style="display: none;" onchange="handleFileUpload(event, 'front')">
                             <div class="uploaded-image" id="uploaded-image-front" style="display: none;">
                                 <img id="preview-image-front" src="" alt="정면 사진">
@@ -126,7 +124,7 @@
                         <div class="upload-item">
                             <h4><i class="fas fa-user-friends"></i> 45도 측면 사진</h4>
                             <div class="upload-zone" id="upload-zone-45" data-type="45" onclick="document.getElementById('photo-input-45').click()" ondrop="handleDrop(event, '45')" ondragover="handleDragOver(event)">
-                                <i class="fas fa-cloud-upload-alt"></i>
+                                <i class="fas fa-camera"></i>
                                 <p>45도 측면 사진</p>
                                 <p class="upload-hint">얼굴이 45도 각도로 보여야 합니다</p>
                             </div>
@@ -141,7 +139,7 @@
                         <div class="upload-item">
                             <h4><i class="fas fa-user-secret"></i> 90도 측면 사진</h4>
                             <div class="upload-zone" id="upload-zone-90" data-type="90" onclick="document.getElementById('photo-input-90').click()" ondrop="handleDrop(event, '90')" ondragover="handleDragOver(event)">
-                                <i class="fas fa-cloud-upload-alt"></i>
+                                <i class="fas fa-camera"></i>
                                 <p>90도 측면 사진</p>
                                 <p class="upload-hint">얼굴이 완전히 측면으로 보여야 합니다</p>
                             </div>
@@ -335,6 +333,37 @@
             }
         }
         window.goToMain = goToMain;
+        
+        // 카메라 모달 이벤트 리스너
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeBtn = document.getElementById('close-camera-btn');
+            const captureBtn = document.getElementById('capture-btn');
+            const switchBtn = document.getElementById('switch-camera-btn');
+            
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeCamera);
+            }
+            
+            if (captureBtn) {
+                captureBtn.addEventListener('click', capturePhoto);
+            }
+            
+            if (switchBtn) {
+                switchBtn.addEventListener('click', switchCamera);
+            }
+            
+            // 모달 배경 클릭 시 닫기
+            const modal = document.getElementById('camera-modal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeCamera();
+                    }
+                });
+            }
+        });
     </script>
+
+
 </body>
 </html>

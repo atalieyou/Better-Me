@@ -64,7 +64,7 @@ async function analyzeFaceWithChatGPT5(imagePaths, sessionId, language = 'ko') {
         `You are a personal branding consultant. The customer wants you to analyze their appearance.
 
 **Important: Analyze all 3 images.**
-- **Front Photo**: Overall face shape and balance analysis
+- **Front Photo**: Overall face shape, neck length, and balance analysis
 - **45-degree Side Photo**: Side profile and nose, mouth side features analysis  
 - **90-degree Side Photo**: Complete side profile and ear, jawline analysis
 
@@ -74,8 +74,9 @@ Please provide a comprehensive and objective analysis of their current appearanc
 Clearly separate each item and **bold** important information.
 
 **1. Face Shape**
-- Which face shape category: oval, round, heart, square, diamond, or oblong
-- Face length: long or short (e.g., long oval, short square)
+- Which face shape category: oval, diamond, heart, peanut, hexagonal, or round
+- Face length: long or short, or middle (e.g., long oval, short square)
+- Neck length: long or short, or middle
 
 **2. Face Proportions**
 - Upper, middle, lower face ratio analysis
@@ -107,7 +108,6 @@ Clearly separate each item and **bold** important information.
 
 **8. Conclusion**
 - Atmosphere the face creates (elegant, cute, chic, calm, sophisticated, etc.)
-- Suitable makeup keywords: juicy makeup, glow makeup, MLBB makeup, etc.
 - Suitable hairstyle keywords: layered cut, wave perm, pomade, etc.
 
 **Rating Criteria:**
@@ -130,7 +130,7 @@ Finally, don't ask me any more questions or make recommendations, just finish.
         `이제부터 너가 퍼스널 브랜딩 상담 실장이야. 고객이 자신의 외모를 분석해주기를 원하고 있어. 
 
 **중요: 3장의 이미지를 모두 분석해주세요.**
-- **정면 사진**: 전체적인 얼굴형과 균형감 분석
+- **정면 사진**: 전체적인 얼굴형과 목 길이, 균형감 분석
 - **45도 측면 사진**: 측면 윤곽과 코, 입의 측면 특징 분석  
 - **90도 측면 사진**: 완전한 측면 윤곽과 귀, 턱선 분석
 
@@ -140,8 +140,10 @@ Finally, don't ask me any more questions or make recommendations, just finish.
 각 항목은 명확하게 구분하고, 중요한 정보는 **굵게** 표시해주세요.
 
 **1. 얼굴형**
-- 고객의 얼굴형이 달걀형, 둥근형, 땅콩형, 마름모형, 하트형, 육각형 중에 어느 얼굴형에 속하는지
-- 얼굴 길이가 긴지 짧은지 (예: 긴 달걀형, 짧은 마름모형)
+- 고객의 얼굴형이 계란형, 마름모형, 하트형, 땅콩형, 육각형, 둥근형 중에 어느 얼굴형에 속하는지
+- 얼굴 길이가 긴지 짧은지, 중간인지 (예: 긴 계란형, 짧은 마름모형)
+- 목이 긴지 짧은지, 중간인지
+
 
 **2. 얼굴 비율**
 - 상안부, 중안부, 하안부의 비율 분석
@@ -173,13 +175,13 @@ Finally, don't ask me any more questions or make recommendations, just finish.
 
 **8. 결론**
 - 해당 얼굴이 자아내는 분위기 (우아함, 귀여움, 도도함, 차분함, 시크함 등)
-- 과즙 메이크업, 글로우 메이크업, MLBB 메이크업 등 어울리는 메이크업 키워드 1개
 - 레이어드컷, 물결펌, 포마드 등 어울리는 헤어 스타일 키워드 1개
 -**등급 기준:**
  **A+**: 극소수의 완벽한 조화와 비율, 피부 상태, 대중적/국제적 미 기준 모두 충족
  **A**: 뛰어난 수준
  **A-**: 상위권이나 약간의 개선 여지가 있는 경우
- **B**: 평균 이상
+ **B+**: 평균 이상
+ **B**: 평균
  **C**: 평균 이하
  **D**: 기준 대비 조화나 비율에서 크게 벗어나는 경우
 

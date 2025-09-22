@@ -82,13 +82,26 @@
     text-align: left;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
 .terms-item h4 input[type="checkbox"] {
     margin: 0;
     transform: scale(1.2);
     accent-color: #CD3D3A;
+}
+
+.terms-link {
+    color: #CD3D3A;
+    font-size: 0.9rem;
+    text-decoration: underline;
+    margin-left: 0.5rem;
+    font-weight: 500;
+}
+
+.terms-link:hover {
+    color: #a02d2a;
+    text-decoration: none;
 }
 
 .terms-item ul {
@@ -449,8 +462,8 @@ body {
 }
 
 .checkmark {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border: 2px solid #e0e0e0;
     border-radius: 4px;
     margin-right: 10px;
@@ -2747,3 +2760,17 @@ body {
         font-size: 1.1rem;
     }
 }
+
+
+/* 테스트 버튼 스타일 */
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+    border: 1px solid #ffc107;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+    border-color: #d39e00;
+}
+

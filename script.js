@@ -113,6 +113,16 @@ function setupRealTimeValidation() {
         if (allChecked) {
             nextButton.style.background = '#CD3D3A';
             nextButton.style.cursor = 'pointer';
+            
+            // GA4: 약관 동의 완료 이벤트
+            try { 
+                if (typeof gtag === 'function') { 
+                    gtag('event', 'terms_agreed', {
+                        event_category: 'consent',
+                        event_label: 'all_terms_agreed'
+                    }); 
+                } 
+            } catch(e){}
         } else {
             nextButton.style.background = '#ccc';
             nextButton.style.cursor = 'not-allowed';
@@ -826,8 +836,15 @@ async function restoreAppState() {
                     console.log('🔍 4단계에서 분석 결과 표시 시작');
                     displayFullAIResponse(analysisResults);
                     console.log('🔍 4단계에서 분석 결과 표시 완료');
-                    // GA4: 분석결과 표시 이벤트
-                    try { if (typeof gtag === 'function') { gtag('event', 'analysis_displayed'); } } catch(e){}
+                    // GA4: 분석 결과 보기 이벤트
+                    try { 
+                        if (typeof gtag === 'function') { 
+                            gtag('event', 'analysis_result_viewed', {
+                                event_category: 'analysis',
+                                event_label: 'analysis_result_displayed'
+                            }); 
+                        } 
+                    } catch(e){}
                 } else {
                     console.log('🔍 4단계에서 분석 결과 없음 - 로딩 메시지 표시');
                     // 분석 결과가 없을 때 로딩 메시지 표시
@@ -2079,8 +2096,15 @@ function disableNextStep() {
 // AI 분석 시작
 async function startAnalysis() {
     try {
-        // GA4: 분석 시작 이벤트
-        try { if (typeof gtag === 'function') { gtag('event', 'analysis_started'); } } catch(e){}
+        // GA4: 사진 업로드 후 분석 시작 이벤트
+        try { 
+            if (typeof gtag === 'function') { 
+                gtag('event', 'analysis_started', {
+                    event_category: 'analysis',
+                    event_label: 'photos_uploaded_analysis_started'
+                }); 
+            } 
+        } catch(e){}
         // 진행률 초기화
         const progressFill = document.getElementById('analysis-progress-fill');
         const progressText = document.getElementById('analysis-progress-text');
@@ -3228,6 +3252,16 @@ async function saveStep4AsImage() {
             downloadImage(canvas4, fileName4);
             console.log('4단계 이미지 저장 완료:', fileName4);
             
+            // GA4: 이미지로 저장 이벤트
+            try { 
+                if (typeof gtag === 'function') { 
+                    gtag('event', 'image_saved', {
+                        event_category: 'download',
+                        event_label: 'analysis_result_saved'
+                    }); 
+                } 
+            } catch(e){}
+            
             // 성공 메시지
             showSuccess('4단계 이미지가 성공적으로 저장되었습니다!');
             
@@ -3253,10 +3287,18 @@ async function saveStep4AsImage() {
 // 업로드 옵션 모달 닫기 함수는 제거됨
 
 
-// 함수들을 전역 스코프에 등록
-window.saveAsImages = saveAsImages;
-window.saveStep4AsImage = saveStep4AsImage;
-// 모달 관련 전역 함수들은 제거됨
+
+
+
+
+
+
+
+
+
+
+
+
 
 // 결제 페이지로 이동하는 함수
 function goToPayment() {

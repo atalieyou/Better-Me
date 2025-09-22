@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Terms and Conditions - Better Me</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        
+        .terms-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 0;
+            box-shadow: none;
+            min-height: 100vh;
+        }
+        
+        .terms-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #CD3D3A;
+        }
+        
+        .terms-header h1 {
+            color: #CD3D3A;
+            font-size: 2rem;
+            margin: 0;
+        }
+        
+        .terms-header p {
+            color: #666;
+            margin: 0.5rem 0 0 0;
+        }
+        
+        .terms-content h2 {
+            color: #CD3D3A;
+            font-size: 1.3rem;
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .terms-content h2:first-child {
+            margin-top: 0;
+        }
+        
+        .terms-content p {
+            margin: 1rem 0;
+            line-height: 1.8;
+        }
+        
+        .terms-content ul {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+        
+        .terms-content li {
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+        
+        .back-btn {
+            display: block;
+            background: #CD3D3A;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 2rem auto 0 auto;
+            transition: background 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            width: fit-content;
+        }
+        
+        .back-btn:hover {
+            background: #a02d2a;
+        }
+        
+        .effective-date {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="terms-container">
+        <div class="terms-header">
+            <h1>Service Terms and Conditions</h1>
+            <p>Better Me Face Analysis Service</p>
+        </div>
+        
+        <div class="terms-content">
+            <h2>Article 1 (Purpose)</h2>
+            <p>These terms and conditions govern the rights, obligations, and responsibilities between "Better Me" (hereinafter "Company") and users regarding the use of the face analysis service (hereinafter "Service").</p>
+            
+            <h2>Article 2 (Service Content)</h2>
+            <p>① The Company provides face shape and facial feature analysis results using OpenAI API based on facial photos uploaded by users (front, 45-degree side, 90-degree side).</p>
+            <p>② The Company provides content related to beauty information and makeup tips in connection with analysis results.</p>
+            <p>③ The service is for informational purposes only and has no medical or legal effect.</p>
+            
+            <h2>Article 3 (User Obligations)</h2>
+            <p>① Users must upload their own photos and must not infringe on others' portrait rights or other rights.</p>
+            <p>② Users must comply with laws and these terms when using the service.</p>
+            
+            <h2>Article 4 (Company Obligations)</h2>
+            <p>① The Company complies with the Personal Information Protection Act and related laws and safely processes users' personal information.</p>
+            <p>② The Company strives to maintain service quality and system stability.</p>
+            
+            <h2>Article 5 (Service Restrictions and Suspension)</h2>
+            <p>The Company may restrict or suspend service provision in the following cases:</p>
+            <ul>
+                <li>System inspection, replacement, failure, etc.</li>
+                <li>National emergency, power outage, communication network failure, etc.</li>
+                <li>When users use the service for illegal or improper purposes</li>
+            </ul>
+            
+            <h2>Article 6 (Personal Information Processing)</h2>
+            <p>① The Company collects only the minimum personal information necessary for service provision.</p>
+            <p>② Collected personal information is used only for service provision purposes and is safely managed according to relevant laws.</p>
+            <p>③ Users may withdraw consent for personal information processing at any time.</p>
+            
+            <h2>Article 7 (Disclaimer)</h2>
+            <p>① The Company does not guarantee the accuracy, completeness, or reliability of the service.</p>
+            <p>② The Company is not responsible for damages incurred during service use.</p>
+            <p>③ The service is for beauty information provision and does not replace medical advice or diagnosis.</p>
+            
+            <h2>Article 8 (Terms Modification)</h2>
+            <p>① The Company may modify these terms as necessary.</p>
+            <p>② When terms are modified, users will be notified through service announcements.</p>
+            <p>③ Modified terms take effect 7 days after announcement.</p>
+        </div>
+        
+        <div class="effective-date">
+            <p>Announcement Date: September 20, 2025</p>
+            <p>Effective Date: September 20, 2025</p>
+        </div>
+        
+        <button onclick="goBack()" class="back-btn">Back to Previous Page</button>
+    </div>
+    
+    <script>
+        function goBack() {
+            // If browser history exists
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                // If no history, go to face analysis page
+                window.location.href = 'face-analysis-en.html';
+            }
+        }
+        
+        // Page load confirmation
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Service Terms page loaded');
+            console.log('History length:', window.history.length);
+        });
+    </script>
+</body>
+</html>

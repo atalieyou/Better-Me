@@ -422,6 +422,16 @@
 
         // 언어에 따른 얼굴분석 서비스 열기
         function openFaceAnalysis() {
+            // GA4: 얼굴분석 서비스 클릭 이벤트
+            try { 
+                if (typeof gtag === 'function') { 
+                    gtag('event', 'face_analysis_clicked', {
+                        event_category: 'service',
+                        event_label: 'face_analysis'
+                    }); 
+                } 
+            } catch(e){}
+            
             const currentLang = currentLanguage || 'ko';
             const faceAnalysisUrl = currentLang === 'en' ? 'face-analysis-en.html' : 'face-analysis.html';
             openService(faceAnalysisUrl);
